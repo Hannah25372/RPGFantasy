@@ -39,6 +39,9 @@ public class characterScript : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         state = State.IDLE;
+
+        mouseMovement = true;
+        CursorOff();
     }
 
 
@@ -59,20 +62,23 @@ public class characterScript : MonoBehaviour
 
 
         //mouse turning
-        if (Input.GetKey("m"))
-        {
-            mouseMovement = true;
-            CursorOff();
-        }
-        if (Input.GetKey("n"))
-        {
-            mouseMovement = false;
-            CursorOn();
-        }
+        //if (Input.GetKey("m"))
+        //{
+        //    mouseMovement = true;
+        //    CursorOff();
+        //}
+        //if (Input.GetKey("n"))
+        //{
+        //    mouseMovement = false;
+        //    CursorOn();
+        //}
+
         if (mouseMovement)
         {
             float h = horizontalSpeed * Input.GetAxis("Mouse X");
             transform.eulerAngles = new Vector3(0, transform.eulerAngles.y + h, 0);
+
+
         }
 
         move = rb.velocity;
@@ -86,6 +92,13 @@ public class characterScript : MonoBehaviour
         move.z = move1.z;
         state = move.x == 0 && move.z == 0 ? State.IDLE : State.MOVING;
 
+        if (state == State.MOVING)
+        {
+            animator.SetBool("isWalking", true);
+        } else
+        {
+            animator.SetBool("isWalking", false);
+        }
 
         //jump
         if (Input.GetKey(KeyCode.Space) && isGrounded)

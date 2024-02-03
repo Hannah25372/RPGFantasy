@@ -35,11 +35,38 @@ public class WalkNPC : MonoBehaviour
         animator.SetBool("isWalking", true);
         rb = GetComponent<Rigidbody>();
 
-        maxX = 7;
-        minX = -7;
-        maxZ = 7;
-        minZ = -7;
-        speed = 1;
+        //village 1
+        maxX = 280;
+        minX = 265;
+        maxZ = 276;
+        minZ = 242;
+
+        ////village 2
+        //maxX = 413;
+        //minX = 386;
+        //maxZ = 390;
+        //minZ = 377;
+
+        ////lake village
+        //maxX = 170;
+        //minX = 128;
+        //maxZ = 170;
+        //minZ = 145;
+
+        //// mountain village
+        //maxX = 492;
+        //minX = 416;
+        //maxZ = 185;
+        //minZ = 153;
+
+        ////dessert village
+        //maxX = 132;
+        //minX = 75;
+        //maxZ = 400;
+        //minZ = 353;
+
+
+        speed = 2;
         rotateDirection = 180f;
         rotating = false;
 
