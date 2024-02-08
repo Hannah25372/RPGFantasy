@@ -63,20 +63,20 @@ namespace Retro.ThirdPersonCharacter
             moveDirection.y -= gravity * Time.deltaTime;
             _characterController.Move(moveDirection * Time.deltaTime);
 
-            _animator.SetFloat("InputX", x);
-            _animator.SetFloat("InputY", y);
+            // _animator.SetFloat("InputX", x);
+            // _animator.SetFloat("InputY", y);
             _animator.SetBool("IsInAir", !grounded);
         }
 
         private void StopMovementOnAttack()
         {
             var temp = lastMovementInput;
-            temp.x -= DecelerationOnStop;
-            temp.y -= DecelerationOnStop;
-            lastMovementInput = temp;
+            //temp.x -= DecelerationOnStop;
+            //temp.y -= DecelerationOnStop;
+            //lastMovementInput = temp;
 
-            _animator.SetFloat("InputX", lastMovementInput.x);
-            _animator.SetFloat("InputY", lastMovementInput.y);
+            //_animator.SetFloat("InputX", lastMovementInput.x);
+            //  _animator.SetFloat("InputY", lastMovementInput.y);
         }
     }
 }
