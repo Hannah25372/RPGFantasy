@@ -27,52 +27,34 @@ public class npcScript : MonoBehaviour
     public float duration;
 
     //character attributes
-    public int ID;
-    public int[] friendLevels;
-    public List<Traits> traits;
-    public int ATK;
-    public int AC;
-    public int HP;
-    public Town currentTown;
-    public Relationship[] relationships;
+    [SerializeField] private int ID;
+    [SerializeField] private List<Traits> traits;
+    [SerializeField] private int ATK;
+    [SerializeField] private int AC;
+    [SerializeField] private int HP;
+    [SerializeField] private Town currentTown;
+    [SerializeField] private Relationship[] relationships;
 
-    public int getHP() { return HP; }
-    public int getAC() { return AC; }
-    public int getATK() { return ATK; }
-    public int getID() { return ID; }
-    public List<Traits> getTraits() { return traits; }
-    public int[] getFriendLevels() { return friendLevels; }
-    public State getState() { return state; }
-    public Town getTown() { return currentTown; }
-    public void setHP(int num) { HP = num; }
-    public void setAC(int num) { AC = num; }
-    public void setATK(int num) { ATK = num; }
-    public void setID(int num) { ID = num; }
-    public void setFriendLevel(int num, int index) { friendLevels[index] = num; }
-    public void setState(State _state) { state = _state; }
-    public void setTown(Town _town) { currentTown = _town; }
+    private ParticleSystem ps;
 
-
-
-    public enum State
-    {
-        IDLE, MOVING, TALKING, FIGHTING, STEALING
+    
+    public int HPController { get => HP; set
+        {
+            HP = Mathf.Clamp(value, 0, 10);
+            if (HP == 0) Destroy(gameObject);
+        }
     }
 
-    public enum Town
-    {
-        Village1, Village2, Lake, Mountain, Dessert
-    }
+    public int IDController { get => ID; set { ID = value; } }
+    public int ACControllor { get => AC; set { AC = value; } }
+    public int ATKController { get => ATK; set { ATK = value; } }
+    public Town TownController { get => currentTown; set { currentTown = value; } }
+    public List<Traits> getTraits => traits;
+    public State StateControllor { get => state; set { state = value; } }
+    public Relationship[] RelationshipsControllor { get => relationships; }
+    public void setNewRelationship(int index, Relationship rel) { relationships[index] = rel; }
 
-    public enum Traits
-    {
-        Aggressive, Friendly, Loyal, Selfish
-    }
 
-    public enum Relationship
-    {
-        Neutral, Enemy, Friend
-    }
 
 
     // Start is called before the first frame update
@@ -80,12 +62,12 @@ public class npcScript : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
-        traits = new List<Traits>();
-        friendLevels = new int[8];
-        relationships = new Relationship[8];
+        ps = gameObject.transform.Find("fightParticles").GetComponent<ParticleSystem>();
+        //traits = new List<Traits>();
+        //relationships = new Relationship[8];
 
         changeTownBounds(Town.Village1);
-
+        Debug.Log(HPController);
         speed = 2;
         rotateDirection = 180f;
 
@@ -93,9 +75,15 @@ public class npcScript : MonoBehaviour
 
         state = State.MOVING;
         animator.SetBool("isWalking", true);
-        
 
 
+        //npcScript[] npcScripts = GameObject.FindObjectsOfType<npcScript>();
+        //foreach (var npc in npcScripts) 
+        //{
+        //    if(npc.clan == this.clan)
+        //    npcRelationShip.Add(npc, Relationship.Friend);
+        //    else
+        //}
         
 
         
@@ -118,7 +106,10 @@ public class npcScript : MonoBehaviour
             talk();
         }
         
-
+        if (state == State.FIGHTING)
+        {
+            fight();
+        }
 
     }
 
@@ -175,6 +166,19 @@ public class npcScript : MonoBehaviour
     void fight()
     {
         //start fighting ideas, and give them options to mercy or flee. if notice another character has done one of these options, then respond to that
+        if (time < duration)
+        {
+            time += Time.deltaTime;
+        }
+        else
+        {
+            time = 0f;
+            animator.SetBool("isWalking", true);
+            //ps.Stop();
+            state = State.MOVING;
+            rotates(150, 210);
+            moves();
+        }
     }
 
     void escape()
@@ -263,6 +267,17 @@ public class npcScript : MonoBehaviour
         moves();
     }
 
+
+    private bool NotInteractingAlready(npcScript npc)
+    {
+        if((npc.StateControllor == State.MOVING || npc.StateControllor == State.IDLE) && (state == State.MOVING || state == State.IDLE))
+        {
+            return false;
+        } else
+        {
+            return true;
+        }
+    }
     private void OnCollisionEnter(Collision collision)
     {
 
@@ -276,47 +291,30 @@ public class npcScript : MonoBehaviour
                 break;
 
             case "NPC":
-                int otherID = collision.gameObject.GetComponent<npcScript>().getID();
+                var otherNPC = collision.gameObject.GetComponent<npcScript>();
+                int otherID = otherNPC.IDController;
 
                 Debug.Log(ID + " crashed into NPC " + otherID);
+
+                //if (NotInteractingAlready(otherNPC))
+                //{
+                //    animator.SetBool("isWalking", false);
+                //    var stateAgainstNPC = simulation.NPCInteraction(this, collision.collider.GetComponent<npcScript>());
+                //    state = stateAgainstNPC[0];
+
+                //}
+                //else
+                //{
+                //    Debug.Log(ID + " or " + otherID + " already interacting");
+                //}
+
                 animator.SetBool("isWalking", false);
+                var stateAgainstNPC = simulation.NPCInteraction(this, collision.collider.GetComponent<npcScript>());
+                state = stateAgainstNPC[0];
 
-             
-
-                int friendLev = friendLevels[otherID];
-                int boundary = friendLevels[otherID];
-
-
-                if (friendLev > 8)
-                {
-                    state = State.TALKING;
-                }
-                if (friendLev < 3)
-                {
-                    if (traits.Contains(Traits.Aggressive))
-                    {
-                        state = State.FIGHTING;
-                    } else
-                    {
-                        state = State.STEALING;
-                    }
-                }
-                if (friendLev >=3 || friendLev <=8)
-                {
-                    if (traits.Contains(Traits.Friendly))
-                    {
-                        state = State.TALKING;
-                    }
-                    else if (traits.Contains(Traits.Aggressive) && traits.Contains(Traits.Selfish))
-                    {
-                        state = State.FIGHTING;
-                    } else
-                    {
-                        //random chance, but for now talk
-                        state = State.TALKING;
-                    }
-                }
-
+                //the interactions in here are just of this format
+                simulation.AddToLog(state, ID.ToString() , otherID.ToString());
+                   
 
 
                 break;
@@ -348,4 +346,30 @@ public class npcScript : MonoBehaviour
 
    
 
+}
+
+enum Clan 
+{ 
+ blue,
+ red,
+}
+
+public enum Relationship
+{
+    Neutral, Enemy, Friend
+}
+
+public enum State
+{
+    IDLE, MOVING, TALKING, FIGHTING, STEALING, STOLENFROM
+}
+
+public enum Town
+{
+    Village1, Village2, Lake, Mountain, Dessert
+}
+
+public enum Traits
+{
+    Aggressive, Friendly, Loyal, Selfish
 }
