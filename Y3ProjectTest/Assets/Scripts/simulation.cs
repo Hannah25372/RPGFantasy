@@ -77,7 +77,7 @@ public class simulation : MonoBehaviour
             }
             else if (traits1.Contains(Traits.Aggressive) && traits2.Contains(Traits.Aggressive))
             {
-                state1 = State.FIGHTING;
+                state1 = State.FIGHTING; 
                 state2 = State.FIGHTING;
             }
             else if (traits1.Contains(Traits.Selfish))
@@ -141,11 +141,15 @@ public class simulation : MonoBehaviour
     //either 2 characters, 1 character 1 object, 2 characters 1 object. Overloaded function so can do either
     public static void AddToLog(string action, string ent1, string ent2, string ent3)
     {
-        log.Add(action + "." + ent1 + "." + ent2 + "." + ent3);
+        string gameLog = action + "." + ent1 + "." + ent2 + "." + ent3;
+        log.Add(gameLog);
+        Debug.Log("Added to game log: " + gameLog);
     }
     public static void AddToLog(string action, string ent1, string ent2)
     {
-        log.Add(action + "." + ent1 + "." + ent2);
+        string gameLog = action + "." + ent1 + "." + ent2;
+        log.Add(gameLog);
+        Debug.Log("Added to game log: " + gameLog);
     }
 
     public static void AddToLog(State action, string ent1, string ent2)
@@ -153,14 +157,14 @@ public class simulation : MonoBehaviour
         switch (action)
         {
             case State.TALKING:
-                simulation.AddToLog("talk", ent1, ent2);
+                AddToLog("talk", ent1, ent2);
                 break;
             case State.FIGHTING:
-                simulation.AddToLog("fight", ent1, ent2);
+                AddToLog("fight", ent1, ent2);
                 break;
-            case State.STEALING:
-                simulation.AddToLog("steal", ent1, ent2);
-                break;
+            //case State.STEALING:
+            //    AddToLog("steal", ent1, ent2);
+            //    break;
         }
     }
 

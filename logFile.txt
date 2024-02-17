@@ -1,0 +1,49 @@
+talk.0.1
+fight.2.3
+escape.2.3
+
+
+
+
+
+
+
+
+Patterns
+
+Vengeance
+A and B fight, A or B escapes, A and B come across each other, A and B fight, A or B dies
+
+Revenge
+{A and B friends}, C and A fight, A dies, B seeks out C, B and C fight, C dies
+
+Justice
+A steals from B, B catches A, B and A fight / B steals from A
+
+Nemesis
+A steals from B / B steals from A / A and B fight {repeated at least 3 times}
+
+Reclaiming
+	A steals from B, A gives to C, B steals from C / B and C fight
+
+Reparation
+{A and B friends} C steals from A, B seeks out C, B steals from C, B gives to A
+
+
+
+story:
+
+vengence)
+rowan and victor will fight. victor ends up fleeing and rowan chases but loses him.
+later victor and rowan come across each other and fight. rowan dies.
+revenge)
+gabriel looks for victor. they fight. victor dies
+
+
+
+doesn't make anything else more likely, just suggests things to you, so looks for patterns you are involved in, plus with your interactions with others in case it says - your friend is being attacked! Help them!
+
+
+
+
+

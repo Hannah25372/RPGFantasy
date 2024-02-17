@@ -37,11 +37,17 @@ public class npcScript : MonoBehaviour
 
     private ParticleSystem ps;
 
+    private npcScript lastInteractedPlayer;
+
     
     public int HPController { get => HP; set
         {
             HP = Mathf.Clamp(value, 0, 10);
-            if (HP == 0) Destroy(gameObject);
+            if (HP == 0)
+            {
+                simulation.AddToLog("kill", lastInteractedPlayer.IDController.ToString(), ID.ToString());
+                Destroy(gameObject);
+            }
         }
     }
 
@@ -105,11 +111,13 @@ public class npcScript : MonoBehaviour
         {
             talk();
         }
-        
+
         if (state == State.FIGHTING)
         {
-            fight();
+            timer3sec();
         }
+
+
 
     }
 
@@ -119,10 +127,32 @@ public class npcScript : MonoBehaviour
 
     }
 
-    void steal()
+    //they attempt, and the sucess or fail determined by other NPC
+    void AttemptSteal(npcScript otherNpc)
     {
-
+        state = State.MOVING;
+        animator.SetBool("isWalking", true);
     }
+
+
+    //the other is the one who steals
+    void NoticeSteal(npcScript otherNpc)
+    {
+        int rand = Random.Range(1,3); //either 1 or 2
+        if (rand == 1) //success
+        {
+            simulation.AddToLog("steal_success", otherNpc.IDController.ToString(), ID.ToString(), "obj1");
+            state = State.MOVING;
+            animator.SetBool("isWalking", true);
+            //swap the object in question
+        } else //fail
+        {
+            simulation.AddToLog("steal_fail", otherNpc.IDController.ToString(), ID.ToString(), "obj1");
+            state = State.MOVING;
+            animator.SetBool("isWalking", true);
+        }      
+    }
+
 
     void give() 
     { }
@@ -163,9 +193,8 @@ public class npcScript : MonoBehaviour
         }
     }
 
-    void fight()
+    void timer3sec()
     {
-        //start fighting ideas, and give them options to mercy or flee. if notice another character has done one of these options, then respond to that
         if (time < duration)
         {
             time += Time.deltaTime;
@@ -174,11 +203,28 @@ public class npcScript : MonoBehaviour
         {
             time = 0f;
             animator.SetBool("isWalking", true);
-            //ps.Stop();
+            ps.Stop();
             state = State.MOVING;
             rotates(150, 210);
             moves();
         }
+    }
+
+    void Fight(npcScript otherNPC)
+    {
+        //start fighting ideas, and give them options to mercy or flee. if notice another character has done one of these options, then respond to that
+        
+
+        ps.Play();
+        if(ATK > otherNPC.ACControllor)
+        {
+            otherNPC.HPController = -2;
+        } else
+        {
+            HPController -= 2;
+        }
+
+
     }
 
     void escape()
@@ -285,6 +331,7 @@ public class npcScript : MonoBehaviour
         {
             case "Player":
                 Debug.Log("Crashed into Player");
+                lastInteractedPlayer = null;
                 animator.SetBool("isWalking", false);
                 state = State.TALKING;
 
@@ -292,6 +339,7 @@ public class npcScript : MonoBehaviour
 
             case "NPC":
                 var otherNPC = collision.gameObject.GetComponent<npcScript>();
+                lastInteractedPlayer = otherNPC;
                 int otherID = otherNPC.IDController;
 
                 Debug.Log(ID + " crashed into NPC " + otherID);
@@ -312,9 +360,12 @@ public class npcScript : MonoBehaviour
                 var stateAgainstNPC = simulation.NPCInteraction(this, collision.collider.GetComponent<npcScript>());
                 state = stateAgainstNPC[0];
 
-                //the interactions in here are just of this format
+                //the interactions in here are just of this format, don't wanna add the steal tho
                 simulation.AddToLog(state, ID.ToString() , otherID.ToString());
-                   
+
+                if (state == State.FIGHTING) Fight(otherNPC);
+                if (state == State.STEALING) AttemptSteal(otherNPC);
+                if (state == State.STOLENFROM) NoticeSteal(otherNPC);
 
 
                 break;
@@ -326,23 +377,7 @@ public class npcScript : MonoBehaviour
         
     }
 
-    //private void OnCollisionExit(Collision collision)
-    //{
-    //    switch (collision.gameObject.tag)
-    //    {
-    //        case "player":
-
-    //            break;
-    //        case "NPC":
-    //            state = State.MOVING;
-                
-
-    //            break;
-    //        default:
-    //            rotates(150, 210);
-    //            break;
-    //    }
-    //}
+    
 
    
 
