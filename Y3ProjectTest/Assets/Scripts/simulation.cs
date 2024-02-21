@@ -9,7 +9,9 @@ public class simulation : MonoBehaviour
     public static int lastViewedLog;
     public static string currentLog;
     private List<Pattern> patterns;
-    
+    private List<Event> events;
+
+    private List<PartialPatternBlock> PartialPatternPool;
 
     //public List<npcScript> characters;
     //they have: HP, AC, ATK, traits, relationships, objectsHolding, location
@@ -42,7 +44,11 @@ public class simulation : MonoBehaviour
         //    i++;
         //}
 
+        events = new List<Event>();
+        PartialPatternPool = new List<PartialPatternBlock>();
 
+        SetUpEventLogs();
+        SetUpPatterns();
 
     }
 
@@ -137,15 +143,27 @@ public class simulation : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-       
+
         if (lastViewedLog < log.Count - 1) //length = 3. last viewed is 2
         {
             lastViewedLog++;
             currentLog = log[lastViewedLog];
-            string[] currentLogBreakdown = currentLog.Split(".");
+            string[] currentLogBreakdown = currentLog.Split(".");  //"fight" "1" "2"
 
-            
+
             //does this log complete /advance any partial patterns?
+            //loop through partial patterns, is it a point which would be the next action in any? If yes, increment them
+            foreach (PartialPatternBlock partialPattern in PartialPatternPool)
+            {
+                //if the next log matches something in a partial pattern
+                if (partialPattern.getNextEvent().action == currentLogBreakdown[1])
+                {
+                    //if ()
+                    //{
+
+                    //}
+                }
+            }
 
             //does this log start a pattern?
 
@@ -163,12 +181,14 @@ public class simulation : MonoBehaviour
         string gameLog = action + "." + ent1 + "." + ent2 + "." + ent3;
         log.Add(gameLog);
         Debug.Log("Added to game log: " + gameLog);
+        Debug.Log("Check: " + log[log.Count -1]);
     }
     public static void AddToLog(string action, string ent1, string ent2)
     {
         string gameLog = action + "." + ent1 + "." + ent2;
         log.Add(gameLog);
         Debug.Log("Added to game log: " + gameLog);
+        Debug.Log("Check: " + log[log.Count - 1]); 
     }
 
     public static void AddToLog(State action, string ent1, string ent2)
@@ -187,19 +207,43 @@ public class simulation : MonoBehaviour
         }
     }
 
+    private void SetUpEventLogs()
+    {
+        events.Add(new Event("fight","A","B",null));
+        events.Add(new Event("escape", "A", "B", null));
+        events.Add(new Event("kill", "A", "B", null));
+        events.Add(new Event("chase", "A", "B", null));
+        events.Add(new Event("catch", "A", "B", null));
+        events.Add(new Event("talk", "A", "B", null));
 
+        events.Add(new Event("drop", "A", "B", "AA"));
+        events.Add(new Event("pickup", "A", "B", "AA"));
+        events.Add(new Event("give", "A", "B", "AA"));
+        events.Add(new Event("steal_sucess", "A", "B", "AA"));
+        events.Add(new Event("steal_fail", "A", "B", "AA"));
+
+        
+
+    }
     private void SetUpPatterns()
     {
-        //revenge pattern
-        List<Event> events1 = new List<Event>();
-        events1.Add(new Event("fight", "A", "B", null, null));
-        events1.Add(new Event("escape", "B", "A", null, null));
-        events1.Add(new Event("fight", "B", "A", null, null));
-        List<Event> nullEvents1 = new List<Event>();
-        nullEvents1.Add(new Event("kill", null, "B", null, null));
-        nullEvents1.Add(new Event("kill", null, "A", null, null));
-        Pattern pattern1 = new(PatternName.revenge, events1, nullEvents1);
+        //vengence pattern
+        List<Event> pat1 = new List<Event>();
+        pat1.Add(new Event("fight", "A", "B", null));
+        pat1.Add(new Event("escape", "B", "A", null));
+        pat1.Add(new Event("fight", "B", "A", null));
+        Pattern pattern1 = new(PatternName.vengence, pat1);
 
+        //steal pattern
+        List<Event> pat2 = new List<Event>();
+        pat2.Add(new Event("steal_success", "A", "B", "AA"));
+        pat2.Add(new Event("fight", "B", "A", null));
+        pat2.Add(new Event("kill", "B", "A", null));
+        pat2.Add(new Event("loot", "B", "A", "AA"));
+        Pattern pattern2 = new(PatternName.revenge, pat2);
+
+        patterns.Add(pattern1);
+        patterns.Add(pattern2);
     }
 
 }
@@ -210,19 +254,17 @@ public class simulation : MonoBehaviour
 //stores an individual event, with the parts that make up an event
 class Event
 {
-    string action;
-    string char1;
-    string char2;
-    string obj;
-    string loc; 
+    public string action;
+    public string char1;
+    public string char2;
+    public string obj;
 
-    public Event(string action, string char1, string char2, string obj, string loc)
+    public Event(string action, string char1, string char2, string obj)
     {
         this.action = action;
         this.char1 = char1;
         this.char2 = char2;
         this.obj = obj;
-        this.loc = loc;
     }
 }
 
@@ -233,13 +275,11 @@ class Pattern {
 
     PatternName name;
     List<Event> events;
-    List<Event> nullifyEvents;
 
-    public Pattern(PatternName name, List<Event> events, List<Event> nullifyEvents)
+    public Pattern(PatternName name, List<Event> events)
     {
         this.name = name;
         this.events = events;
-        this.nullifyEvents = nullifyEvents;
     }
 
     public Event getEvent(int no)
@@ -254,15 +294,15 @@ class Pattern {
 }
 
 //holds the pattern being followed, where you are up to, which characters, objects end up getting used
+//stick the actual characters being used in the pattern sections so they know which ones to look for
 class PartialPatternBlock
 {
     Pattern pattern; //add the pattern in question
     int nextEvent;
-    string char1;
-    string char2;
-    string char3; //can end up having patterns with 3 characters (but an individual events would only have max 2 characters)
+    string charA;
+    string charB;
+    string charC; //can end up having patterns with 3 characters (but an individual events would only have max 2 characters)
     string obj;
-    string loc;
 
     public Event getNextEvent()
     {
@@ -274,6 +314,6 @@ class PartialPatternBlock
 //pattern names
 enum PatternName
 {
-    revenge, betrayal
+    revenge, betrayal, vengence, 
 }
 
