@@ -6,7 +6,7 @@ public class simulation : MonoBehaviour
 {
 
     public static List<string> log;
-    public static int lastViewedLog;
+    public static int lastViewedLog = -1;
     public static string currentLog;
     private List<Pattern> patterns;
     private List<Event> events;
@@ -46,8 +46,9 @@ public class simulation : MonoBehaviour
 
         events = new List<Event>();
         PartialPatternPool = new List<PartialPatternBlock>();
+        patterns = new List<Pattern>();
 
-        SetUpEventLogs();
+        //SetUpEventLogs();
         SetUpPatterns();
 
     }
@@ -146,17 +147,20 @@ public class simulation : MonoBehaviour
 
         if (lastViewedLog < log.Count - 1) //length = 3. last viewed is 2
         {
+            bool addedToPartialPattern = false;
+            bool createdNewPattern = false;
             lastViewedLog++;
             currentLog = log[lastViewedLog];
             string[] currentLogBreakdown = currentLog.Split(".");  //"fight" "1" "2"
 
+            
 
             //does this log complete /advance any partial patterns?
             //loop through partial patterns, is it a point which would be the next action in any? If yes, increment them
             foreach (PartialPatternBlock partialPattern in PartialPatternPool)
             {
                 //if the next log matches something in a partial pattern
-                if (partialPattern.getNextEvent().action == currentLogBreakdown[1])
+                if (partialPattern.getNextEvent().action == currentLogBreakdown[0])
                 {
                     //if ()
                     //{
@@ -165,15 +169,52 @@ public class simulation : MonoBehaviour
                 }
             }
 
-            //does this log start a pattern?
+            //does this log start a pattern? Opens a PartialPattern and adds to the PartialPatternPool
+            if (!addedToPartialPattern)
+            {
+                foreach (Pattern pat in patterns)
+                {
+                    if (pat.getEvent(0).action == currentLogBreakdown[0]) //theres a pattern for this
+                    {
+                        PartialPatternPool.Add(new PartialPatternBlock(pat, GetNPCByID(currentLogBreakdown[1]), GetNPCByID(currentLogBreakdown[2])));
+                        createdNewPattern = true;
+                        Debug.Log("Added to partial pool");
+                    }
+                }
+
+
+            }
+            
+            //anything to remove from partial pool? pattern taking too long or a character dies.
+
 
             //what events will be needed to advance any partial patterns? give suggestions
+
         }
 
 
     }
 
 
+    public npcScript GetNPCByID(string IDstring)
+    {
+        int ID = int.Parse(IDstring);
+        GameObject[] npcs = GameObject.FindGameObjectsWithTag("NPC");
+        Debug.Log("NPCs found: " + npcs.Length);
+        List<npcScript> npcScripts = new List<npcScript>();
+        foreach (GameObject npc in npcs) {
+            npcScripts.Add(npc.GetComponent<npcScript>());      
+        }
+        foreach(npcScript npc in npcScripts)
+        {
+            Debug.Log("ID searching: " + ID.ToString() + ". NPC: " + npc.GetID().ToString());
+            if (npc.GetID() == ID)
+            {
+                return npc;
+            }
+        }
+        return null;          
+    }
 
     //either 2 characters, 1 character 1 object, 2 characters 1 object. Overloaded function so can do either
     public static void AddToLog(string action, string ent1, string ent2, string ent3)
@@ -209,18 +250,18 @@ public class simulation : MonoBehaviour
 
     private void SetUpEventLogs()
     {
-        events.Add(new Event("fight","A","B",null));
-        events.Add(new Event("escape", "A", "B", null));
-        events.Add(new Event("kill", "A", "B", null));
-        events.Add(new Event("chase", "A", "B", null));
-        events.Add(new Event("catch", "A", "B", null));
-        events.Add(new Event("talk", "A", "B", null));
+        //events.Add(new Event("fight","A","B",null));
+        //events.Add(new Event("escape", "A", "B", null));
+        //events.Add(new Event("kill", "A", "B", null));
+        //events.Add(new Event("chase", "A", "B", null));
+        //events.Add(new Event("catch", "A", "B", null));
+        //events.Add(new Event("talk", "A", "B", null));
 
-        events.Add(new Event("drop", "A", "B", "AA"));
-        events.Add(new Event("pickup", "A", "B", "AA"));
-        events.Add(new Event("give", "A", "B", "AA"));
-        events.Add(new Event("steal_sucess", "A", "B", "AA"));
-        events.Add(new Event("steal_fail", "A", "B", "AA"));
+        //events.Add(new Event("drop", "A", "B", "AA"));
+        //events.Add(new Event("pickup", "A", "B", "AA"));
+        //events.Add(new Event("give", "A", "B", "AA"));
+        //events.Add(new Event("steal_sucess", "A", "B", "AA"));
+        //events.Add(new Event("steal_fail", "A", "B", "AA"));
 
         
 
@@ -232,18 +273,47 @@ public class simulation : MonoBehaviour
         pat1.Add(new Event("fight", "A", "B", null));
         pat1.Add(new Event("escape", "B", "A", null));
         pat1.Add(new Event("fight", "B", "A", null));
-        Pattern pattern1 = new(PatternName.vengence, pat1);
+        Pattern pattern1 = new(PatternName.vengence, pat1, false);
 
-        //steal pattern
+        //kill and steal back pattern
         List<Event> pat2 = new List<Event>();
         pat2.Add(new Event("steal_success", "A", "B", "AA"));
         pat2.Add(new Event("fight", "B", "A", null));
         pat2.Add(new Event("kill", "B", "A", null));
         pat2.Add(new Event("loot", "B", "A", "AA"));
-        Pattern pattern2 = new(PatternName.revenge, pat2);
+        Pattern pattern2 = new(PatternName.revenge, pat2, false);
+
+
+        //killing character that killed friend
+        List<Event> pat3 = new List<Event>();
+        pat3.Add(new Event("kill", "A", "B", null));
+        pat3.Add(new Event("fight", "C", "A", null));
+        pat3.Add(new Event("kill", "C", "A", null));
+        Pattern pattern3 = new(PatternName.revenge, pat3, true);
+        //conditions: character is aggressive. C and A friends
+
+        // stealing back item from character that killed and looted from friend
+        //List<Event> pat4 = new List<Event>();
+        //pat4.Add(new Event("kill", "A", "B", null));
+        //pat4.Add(new Event("loot", "A", "B", "AA"));
+        //pat4.Add(new Event("steal_success", "C", "A", "AA"));
+        //Pattern pattern4 = new(PatternName.revenge, pat4, true);
+        //conditions: character not agressive. C and A friends
+
+        //character failed a steal and kept getting caught, annoys other character
+        List<Event> pat5 = new List<Event>();
+        pat5.Add(new Event("steal_fail", "A", "B", null));
+        pat5.Add(new Event("steal_fail", "A", "B", null));  //maybe you should try stealing again later
+        pat5.Add(new Event("fight", "B", "A", null));  //he keeps stealing from you, he won't stop unless you stop him.
+        Pattern pattern5 = new(PatternName.revenge, pat5, false);
 
         patterns.Add(pattern1);
         patterns.Add(pattern2);
+        patterns.Add(pattern3);
+        //patterns.Add(pattern4);
+        patterns.Add(pattern5);
+
+
     }
 
 }
@@ -275,11 +345,13 @@ class Pattern {
 
     PatternName name;
     List<Event> events;
+    bool conditionFriendCA;
 
-    public Pattern(PatternName name, List<Event> events)
+    public Pattern(PatternName name, List<Event> events, bool conditionFriendCA)
     {
         this.name = name;
         this.events = events;
+        this.conditionFriendCA = conditionFriendCA;
     }
 
     public Event getEvent(int no)
@@ -299,14 +371,37 @@ class PartialPatternBlock
 {
     Pattern pattern; //add the pattern in question
     int nextEvent;
-    string charA;
-    string charB;
-    string charC; //can end up having patterns with 3 characters (but an individual events would only have max 2 characters)
+    npcScript charA;
+    npcScript charB;
+    npcScript charC; //can end up having patterns with 3 characters (but an individual events would only have max 2 characters)
     string obj;
+    float started;
+    float duration;
 
+    public PartialPatternBlock(Pattern pattern, npcScript charA, npcScript charB)
+    {
+        this.pattern = pattern;
+        this.charA = charA;
+        this.charB = charB;
+        started = Time.deltaTime;
+        nextEvent = 1;
+    }
     public Event getNextEvent()
     {
        return pattern.getEvent(nextEvent);      
+    }
+
+    //3 events. next one is 2 its okay, if its 3 then passed
+    //returns TRUE if it is completed
+    public bool incrementNextEvent()
+    {
+        nextEvent++;
+        return !(nextEvent < pattern.noEvents());
+    }
+
+    public void SetCharC(npcScript charC)
+    {
+        this.charC = charC;
     }
 
 }

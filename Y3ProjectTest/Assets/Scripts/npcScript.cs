@@ -60,7 +60,10 @@ public class npcScript : MonoBehaviour
     public Relationship[] RelationshipsControllor { get => relationships; }
     public void setNewRelationship(int index, Relationship rel) { relationships[index] = rel; }
 
-
+    public int GetID()
+    {
+        return ID;
+    }
 
 
     // Start is called before the first frame update
