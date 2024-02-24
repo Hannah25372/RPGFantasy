@@ -76,7 +76,6 @@ public class npcScript : MonoBehaviour
         //relationships = new Relationship[8];
 
         changeTownBounds(Town.Village1);
-        Debug.Log(HPController);
         speed = 2;
         rotateDirection = 180f;
 

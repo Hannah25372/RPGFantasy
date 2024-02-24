@@ -1,0 +1,3 @@
+when partial pool created.
+
+makes a pattern that has the required characters and objects in correct places, and empty for third character that is unknown yet. so can eaily compare it just to the pattern
