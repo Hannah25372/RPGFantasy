@@ -1,3 +1,25 @@
 when partial pool created.
 
 makes a pattern that has the required characters and objects in correct places, and empty for third character that is unknown yet. so can eaily compare it just to the pattern
+
+
+
+
+example influences::
+
+
+If fight is needed.
+
+"that guy tried to kill you! We'll get him back later"
+"He's over there looking smug at that last defeat"
+
+
+If steal is needed
+"Try stealing again, he's not looking"
+
+if fight after steal
+"They've tried to steal from you one too many times. You gonna let them push you around like that?"
+
+
+if give
+"They were nice I bet they'd be a good friend"

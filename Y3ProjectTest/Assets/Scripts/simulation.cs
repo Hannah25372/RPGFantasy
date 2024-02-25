@@ -10,7 +10,9 @@ public class simulation : MonoBehaviour
     public static int lastViewedLog = -1;
     public static string currentLog;
     private List<Pattern> patterns;
-    private List<Event> events;
+    public static List<string> deadNPCs;
+    private int partialsAdded = 0;
+    public List<string> completedPatterns;
 
     private List<PartialBlock> PartialPatternPool;
 
@@ -32,14 +34,20 @@ public class simulation : MonoBehaviour
     public static void WriteToLog(string text)
     {
         string path = "Assets/TextFiles/Log.txt";
-        //Write some text to the test.txt file
         StreamWriter writer = new StreamWriter(path, true);
         writer.WriteLine(text);
         writer.Close();
         //StreamReader reader = new StreamReader(path);
-        //Print the text from the file
         //Debug.Log(reader.ReadToEnd());
         //reader.Close();
+    }
+
+    public static void ClearLogText()
+    {
+        string path = "Assets/TextFiles/Log.txt";
+        StreamWriter writer = new StreamWriter(path, false);
+        writer.WriteLine("LOG FILE");
+        writer.Close();
     }
 
     public static void WritePartialPool(string text)
@@ -50,56 +58,48 @@ public class simulation : MonoBehaviour
         writer.Close();
     }
 
-    public string getPartialPoolText()
+    public static void WriteCompletedPattern(string text)
     {
-        string text = "";
-        List<PartialBlock> blocks = PartialPatternPool;
-        foreach (PartialBlock block in blocks)
-        {
-            //Pattern pattern;
-            //int nextEvent;
-            //npcScript charA;
-            //npcScript charB;
-            //npcScript charC;
-            //string obj;
-            //float started;
-            //float duration;
-           // text += block.GetStringVersion();
-
-        }
-
-        return text;
+        string path = "Assets/TextFiles/CompletedPattern.txt";
+        StreamWriter writer = new StreamWriter(path, true);
+        writer.WriteLine(text);
+        writer.Close();
     }
+
+    public static void ClearPartialPoolText()
+    {
+        string path = "Assets/TextFiles/PartialPool.txt";
+        StreamWriter writer = new StreamWriter(path, false);
+        writer.WriteLine("PARTIAL POOL");
+        writer.Close();
+    }
+
+  
 
 
     // Start is called before the first frame update
     void Start()
     {
-       
-
         log = new List<string>();
-        //characters = new List<npcScript>();
-        //int i = 0;
-        //foreach (var npc in characters)
-        //{
-        //    npc.StateControllor = State.MOVING;
-        //    npc.IDController = i;
-        //    i++;
-        //}
-
-        events = new List<Event>();
         PartialPatternPool = new List<PartialBlock>();
         patterns = new List<Pattern>();
+        deadNPCs = new List<string>();
+        completedPatterns = new List<string>();
 
-        //SetUpEventLogs();
         SetUpPatterns();
 
-        WriteToLog("LOG FILE");
-        WritePartialPool(getPartialPoolText());
+        ClearLogText();
+        ClearPartialPoolText();
 
     }
 
-   
+    // Update is called once per frame
+    void Update()
+    {
+        StorySift();
+        Influence();
+    }
+
 
     //both NPCs call this when they crash into each other
     public static State[] NPCInteraction(npcScript npc1, npcScript npc2) 
@@ -189,73 +189,165 @@ public class simulation : MonoBehaviour
 
 
 
-    // Update is called once per frame
-    void Update()
+    void StorySift()
     {
-
-        //GetNPCByID("1");
-
         if (lastViewedLog < log.Count - 1) //length = 3. last viewed is 2
         {
             bool addedToPartialPattern = false;
             bool createdNewPattern = false;
+            bool completedPattern = false;
             lastViewedLog++;
             currentLog = log[lastViewedLog];
             string[] currentLogBreakdown = currentLog.Split(".");  //"fight" "1" "2"
 
-            
 
+            //ADVANCE PATTERN IN POOL
             //does this log complete /advance any partial patterns?
             //loop through partial patterns, is it a point which would be the next action in any? If yes, increment them
-            foreach (PartialBlock partialPattern in PartialPatternPool)
+            for (int i = 0; i> PartialPatternPool.Count; i++)
             {
                 //if the next log matches something in a partial pattern
-                if (partialPattern.GetCurrentEvent().action == currentLogBreakdown[0])
+                Event eventLooking = PartialPatternPool[i].GetCurrentEvent();
+                if ((eventLooking.action == currentLogBreakdown[0]) && (eventLooking.char1 == currentLogBreakdown[1]) && (eventLooking.char2 == currentLogBreakdown[2]))
                 {
-                    //if ()
-                    //{
+                    //there is a match. an log occured which matches an event we need
+                    addedToPartialPattern = true;
+                    PartialPatternPool[i].incrementEvent();
+                    if (PartialPatternPool[i].patternComplete())
+                    {
+                        completedPattern = true;
+                        completedPatterns.Add(PartialPatternPool[i].WriteBlock());
+                        WriteCompletedPattern(PartialPatternPool[i].WriteBlock());
+                    }
 
-                    //}
                 }
-            }
+                //now have a check for if can intro the new charC too -- if one of the char in pattern is "" then we can add the new charC
+                else if ((eventLooking.action == currentLogBreakdown[0]) )
+                {
+                    if ((eventLooking.char1 == currentLogBreakdown[1]) && (eventLooking.char2 == ""))
+                    {
+                        npcScript tempCharC = GetNPCByID(currentLogBreakdown[2]);
+                        if (tempCharC == null)
+                        {
+                            Debug.Log("Character doesn't exist anymore cannot add to pool");
+                        }
+                        else
+                        {
+                            PartialPatternPool[i].SetCharC(tempCharC);
+                            addedToPartialPattern = true;
+                            PartialPatternPool[i].incrementEvent();
+                            if (PartialPatternPool[i].patternComplete())
+                            {
+                                completedPattern = true;
+                                completedPatterns.Add(PartialPatternPool[i].WriteBlock());
+                                WriteCompletedPattern(PartialPatternPool[i].WriteBlock());
+                            }
+                        }
 
+                    }
+                    if ((eventLooking.char1 == "") && (eventLooking.char2 == currentLogBreakdown[2]))
+                    {
+                        npcScript tempCharC = GetNPCByID(currentLogBreakdown[1]);
+                        if (tempCharC == null)
+                        {
+                            Debug.Log("Character doesn't exist anymore cannot add to pool");
+                        }
+                        else
+                        {
+                            PartialPatternPool[i].SetCharC(tempCharC);
+                            addedToPartialPattern = true;
+                            PartialPatternPool[i].incrementEvent();
+                            if (PartialPatternPool[i].patternComplete())
+                            {
+                                completedPattern = true;
+                                completedPatterns.Add(PartialPatternPool[i].WriteBlock());
+                                WriteCompletedPattern(PartialPatternPool[i].WriteBlock());
+                            }
+                        }
+                    }
+
+                }
+
+            }
+           
+
+            //CREATE NEW PATTERN FOR POOL
             //does this log start a pattern? Opens a PartialPattern and adds to the PartialPatternPool
             if (!addedToPartialPattern)
             {
                 foreach (Pattern pat in patterns)
                 {
-                    if (pat.getEvent(0).action == currentLogBreakdown[0]) //theres a pattern for this
+                    if (pat.getEvent(0).action == currentLogBreakdown[0]) //theres a pattern for this - creates a pattern for any potential one atm - could add heuristics
                     {
                         npcScript tempCharA = GetNPCByID(currentLogBreakdown[1]);
                         npcScript tempCharB = GetNPCByID(currentLogBreakdown[2]);
                         if (tempCharA == null || tempCharB == null)
                         {
                             Debug.Log("Character doesn't exist anymore cannot add to pool");
-                        } else
+                        }
+                        else
                         {
-                            PartialPatternPool.Add(new PartialBlock(pat, tempCharA, tempCharB));
+                            //creating a new partial pattern to add to pool
+                            PartialBlock block = new PartialBlock(pat, tempCharA, tempCharB, partialsAdded);
+                            PartialPatternPool.Add(block);
                             createdNewPattern = true;
+                            partialsAdded++;
                             Debug.Log("Added to partial pool: " + pat.name.ToString());
-                            WritePartialPool(pat.name.ToString());
+
                         }
 
-                       
+
                     }
                 }
 
 
             }
+
+
+            //DELETE FROM POOL
+            //anything to remove from partial pool? pattern taking too long or a character dies or pattern complete
+            List<PartialBlock> blocksToDelete = new List<PartialBlock>();
+            foreach (PartialBlock block in PartialPatternPool)
+            {             
+                foreach(string npc in deadNPCs)
+                {
+                    if (block.containNPC(npc))
+                    {
+                        blocksToDelete.Add(block);
+                    }
+                }
+                if (block.patternComplete())
+                {
+                    blocksToDelete.Add(block);
+                }
+            }
+            foreach(PartialBlock itemDelete in blocksToDelete)
+            {
+                PartialPatternPool.Remove(itemDelete);
+            }
             
-            //anything to remove from partial pool? pattern taking too long or a character dies.
 
-
+            //INFLUENCER
             //what events will be needed to advance any partial patterns? give suggestions
 
+
+
+            //REWRITE PARTIAL POOL
+            ClearPartialPoolText();
+            foreach (PartialBlock block in PartialPatternPool)
+            {
+                WritePartialPool(block.WriteBlock());
+            }
+
         }
-
-
     }
 
+    
+    void Influence()
+    {
+        //makes a list of strings that can be used to influence the player
+        //still need to decide when to use them and how and how often etc.
+    }
 
     public npcScript GetNPCByID(string IDstring)
     {
@@ -312,24 +404,7 @@ public class simulation : MonoBehaviour
         }
     }
 
-    private void SetUpEventLogs()
-    {
-        //events.Add(new Event("fight","A","B",null));
-        //events.Add(new Event("escape", "A", "B", null));
-        //events.Add(new Event("kill", "A", "B", null));
-        //events.Add(new Event("chase", "A", "B", null));
-        //events.Add(new Event("catch", "A", "B", null));
-        //events.Add(new Event("talk", "A", "B", null));
-
-        //events.Add(new Event("drop", "A", "B", "AA"));
-        //events.Add(new Event("pickup", "A", "B", "AA"));
-        //events.Add(new Event("give", "A", "B", "AA"));
-        //events.Add(new Event("steal_sucess", "A", "B", "AA"));
-        //events.Add(new Event("steal_fail", "A", "B", "AA"));
-
-        
-
-    }
+   
     private void SetUpPatterns()
     {
         //vengence pattern
@@ -382,9 +457,6 @@ public class simulation : MonoBehaviour
 
 }
 
-
-
-
 //stores an individual event, with the parts that make up an event
 class Event
 {
@@ -436,55 +508,9 @@ class Pattern {
 
 }
 
+
 //holds the pattern being followed, where you are up to, which characters, objects end up getting used
 //stick the actual characters being used in the pattern sections so they know which ones to look for
-class PartialPatternBlock
-{
-    Pattern pattern; //add the pattern in question
-    int nextEvent;
-    npcScript charA;
-    npcScript charB;
-    npcScript charC; //can end up having patterns with 3 characters (but an individual events would only have max 2 characters)
-    string obj;
-    float started;
-    float duration;
-
-    public PartialPatternBlock(Pattern pattern, npcScript charA, npcScript charB)
-    {
-        this.pattern = pattern;
-        this.charA = charA;
-        this.charB = charB;
-        started = Time.deltaTime;
-        nextEvent = 1;
-    }
-    public Event getNextEvent()
-    {
-       return pattern.getEvent(nextEvent);      
-    }
-
-    //3 events. next one is 2 its okay, if its 3 then passed
-    //returns TRUE if it is completed
-    public bool incrementNextEvent()
-    {
-        nextEvent++;
-        return !(nextEvent < pattern.noEvents());
-    }
-
-    public void SetCharC(npcScript charC)
-    {
-        this.charC = charC;
-    }
-
-    public string GetStringVersion()
-    {
-        string text = "Partial Pattern Started";
-
-        return text;
-    }
-
-}
-
-
 class PartialBlock
 {
     Pattern patternTemplate;
@@ -495,14 +521,17 @@ class PartialBlock
     List<Event> patternFollowEventsList;
     int currentEvent;
     int patternLength;
+    int ID;
 
-    public PartialBlock(Pattern pattern, npcScript _charA, npcScript _charB)
+    public PartialBlock(Pattern pattern, npcScript _charA, npcScript _charB, int _ID)
     {
         patternTemplate = pattern;
         charA = _charA;
         charB = _charB;
+        charC = null;
         patternFollowEventsList = new List<Event>();
-        currentEvent = 0;
+        currentEvent = 1;
+        ID = _ID;
  
         //sets up event list with correct characters in the pattern (as strings of their ID
         foreach(Event _event in patternTemplate.GetEvents())
@@ -546,6 +575,29 @@ class PartialBlock
 
     }
 
+    public int getID()
+    {
+        return ID;
+    }
+
+
+    public string WriteBlock()
+    {
+        string text = patternFollow.name.ToString();
+        int i = 0;
+        foreach(Event e in patternFollowEventsList)
+        { 
+            text += "\r\n " + e.action + " " + e.char1 + " " + e.char2;
+            if(i == currentEvent)
+            {
+                text += " <-- looking for next";
+            }
+            i++;
+        }
+        text += "\r\n";
+        return text;
+    }
+
     public void SetCharC(npcScript _charC)
     {
         charC = _charC;
@@ -576,13 +628,29 @@ class PartialBlock
     public bool patternComplete()
     {
         //length 3. if i am on current 2, there is one more to complete
-        if (currentEvent >= patternLength)
+        if (currentEvent > patternLength)
         {
             return true;
         } else
         {
             return false;
         }
+    }
+
+    public bool containNPC(string id)
+    {
+        if ((charA.IDController.ToString() == id) || (charB.IDController.ToString() == id))
+        {
+            return true;
+        }
+        else if (!(charC == null))
+        {
+            if (charC.IDController.ToString() == id)
+            {
+                return true;
+            }
+        }
+            return false;         
     }
 
 }

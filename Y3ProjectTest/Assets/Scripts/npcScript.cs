@@ -46,7 +46,9 @@ public class npcScript : MonoBehaviour
             if (HP == 0)
             {
                 simulation.AddToLog("kill", lastInteractedPlayer.IDController.ToString(), ID.ToString());
+                simulation.deadNPCs.Add(ID.ToString());
                 Destroy(gameObject);
+
             }
         }
     }
