@@ -236,7 +236,7 @@ public class simulation : MonoBehaviour
                         }
                         else
                         {
-                            PartialPatternPool[i].SetCharC(tempCharC);
+                            PartialPatternPool[i].SetCharC(tempCharC.IDController.ToString());
                             addedToPartialPattern = true;
                             PartialPatternPool[i].incrementEvent();
                             if (PartialPatternPool[i].patternComplete())
@@ -257,7 +257,7 @@ public class simulation : MonoBehaviour
                         }
                         else
                         {
-                            PartialPatternPool[i].SetCharC(tempCharC);
+                            PartialPatternPool[i].SetCharC(tempCharC.IDController.ToString());
                             addedToPartialPattern = true;
                             PartialPatternPool[i].incrementEvent();
                             if (PartialPatternPool[i].patternComplete())
@@ -282,21 +282,61 @@ public class simulation : MonoBehaviour
                 {
                     if (pat.getEvent(0).action == currentLogBreakdown[0]) //theres a pattern for this - creates a pattern for any potential one atm - could add heuristics
                     {
-                        npcScript tempCharA = GetNPCByID(currentLogBreakdown[1]);
-                        npcScript tempCharB = GetNPCByID(currentLogBreakdown[2]);
-                        if (tempCharA == null || tempCharB == null)
+                        //need to also check if ID = 0 -> that is the player
+                        if (currentLogBreakdown[1] == "0")
                         {
-                            Debug.Log("Creating new pattern: Character doesn't exist anymore cannot add to pool");
-                        }
-                        else
-                        {
-                            //creating a new partial pattern to add to pool
-                            PartialBlock block = new PartialBlock(pat, tempCharA, tempCharB, partialsAdded);
-                            PartialPatternPool.Add(block);
-                            createdNewPattern = true;
-                            partialsAdded++;
-                            Debug.Log("Added to partial pool: " + pat.name.ToString());
+                            npcScript tempCharB = GetNPCByID(currentLogBreakdown[2]);
+                            if (tempCharB == null)
+                            {
+                                Debug.Log("Creating new pattern: Character doesn't exist anymore cannot add to pool");
+                            }
+                            else
+                            {
+                                //creating a new partial pattern to add to pool
+                                PartialBlock block = new PartialBlock(pat, "0", tempCharB.IDController.ToString(), partialsAdded);
+                                PartialPatternPool.Add(block);
+                                createdNewPattern = true;
+                                partialsAdded++;
+                                Debug.Log("Added to partial pool: " + pat.name.ToString());
 
+                            }
+                        }
+                        else if (currentLogBreakdown[2] == "0")
+                        {
+                            npcScript tempCharA = GetNPCByID(currentLogBreakdown[1]);
+                            if (tempCharA == null)
+                            {
+                                Debug.Log("Creating new pattern: Character doesn't exist anymore cannot add to pool");
+                            }
+                            else
+                            {
+                                //creating a new partial pattern to add to pool
+                                PartialBlock block = new PartialBlock(pat, tempCharA.IDController.ToString(), "0", partialsAdded);
+                                PartialPatternPool.Add(block);
+                                createdNewPattern = true;
+                                partialsAdded++;
+                                Debug.Log("Added to partial pool: " + pat.name.ToString());
+
+                            }
+                        }
+                        else 
+                        { 
+                            npcScript tempCharA = GetNPCByID(currentLogBreakdown[1]);
+                            npcScript tempCharB = GetNPCByID(currentLogBreakdown[2]);
+                            if (tempCharA == null || tempCharB == null)
+                            { 
+                                Debug.Log("Creating new pattern: Character doesn't exist anymore cannot add to pool");
+                            }
+                            else
+                            {
+                                //creating a new partial pattern to add to pool
+                                PartialBlock block = new PartialBlock(pat, tempCharA.IDController.ToString(), tempCharB.IDController.ToString(), partialsAdded);
+                                PartialPatternPool.Add(block);
+                                createdNewPattern = true;
+                                partialsAdded++;
+                                Debug.Log("Added to partial pool: " + pat.name.ToString());
+
+                            }
                         }
 
 
@@ -548,15 +588,15 @@ class PartialBlock
 {
     Pattern patternTemplate;
     Pattern patternFollow;
-    npcScript charA;
-    npcScript charB;
-    npcScript charC;
+    string charA;
+    string charB;
+    string charC;
     List<Event> patternFollowEventsList;
     int currentEvent;
     int patternLength;
     int ID;
 
-    public PartialBlock(Pattern pattern, npcScript _charA, npcScript _charB, int _ID)
+    public PartialBlock(Pattern pattern, string _charA, string _charB, int _ID)
     {
         patternTemplate = pattern;
         charA = _charA;
@@ -573,31 +613,31 @@ class PartialBlock
             {
                 if (_event.char2.Equals("B"))
                 {
-                    patternFollowEventsList.Add(new Event(_event.action, charA.IDController.ToString(), charB.IDController.ToString(), null));
+                    patternFollowEventsList.Add(new Event(_event.action, charA, charB, null));
                 } else
                 {
-                    patternFollowEventsList.Add(new Event(_event.action, charA.IDController.ToString(), "", null));
+                    patternFollowEventsList.Add(new Event(_event.action, charA, "", null));
                 }
                
             } else if (_event.char1.Equals("B"))
             {
                 if (_event.char2.Equals("A"))
                 {
-                    patternFollowEventsList.Add(new Event(_event.action, charB.IDController.ToString(), charA.IDController.ToString(), null));
+                    patternFollowEventsList.Add(new Event(_event.action, charB, charA, null));
                 }
                 else
                 {
-                    patternFollowEventsList.Add(new Event(_event.action, charB.IDController.ToString(), "", null));
+                    patternFollowEventsList.Add(new Event(_event.action, charB, "", null));
                 }
             } else
             {
                 if (_event.char2.Equals("A"))
                 {
-                    patternFollowEventsList.Add(new Event(_event.action, "", charA.IDController.ToString(), null));
+                    patternFollowEventsList.Add(new Event(_event.action, "", charA, null));
                 }
                 else
                 {
-                    patternFollowEventsList.Add(new Event(_event.action, "", charB.IDController.ToString(), null));
+                    patternFollowEventsList.Add(new Event(_event.action, "", charB, null));
                 }
             }
             
@@ -631,18 +671,18 @@ class PartialBlock
         return text;
     }
 
-    public void SetCharC(npcScript _charC)
+    public void SetCharC(string _charC)
     {
         charC = _charC;
         for (int i = 0; i < patternFollowEventsList.Count; i++)
         {
             if (patternFollowEventsList[i].char1.Equals(""))
             {
-                patternFollowEventsList[i].char1 = charC.IDController.ToString();
+                patternFollowEventsList[i].char1 = charC;
             }
             if (patternFollowEventsList[i].char2.Equals(""))
             {
-                patternFollowEventsList[i].char2 = charC.IDController.ToString();
+                patternFollowEventsList[i].char2 = charC;
             }
         }
         patternFollow = new Pattern(patternTemplate.name, patternFollowEventsList, patternTemplate.conditionFriendCA);
@@ -672,13 +712,13 @@ class PartialBlock
 
     public bool containNPC(string id)
     {
-        if ((charA.IDController.ToString() == id) || (charB.IDController.ToString() == id))
+        if ((charA == id) || (charB == id))
         {
             return true;
         }
         else if (!(charC == null))
         {
-            if (charC.IDController.ToString() == id)
+            if (charC == id)
             {
                 return true;
             }
