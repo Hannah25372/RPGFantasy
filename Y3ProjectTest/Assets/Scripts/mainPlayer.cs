@@ -26,30 +26,30 @@ public class mainPlayer : MonoBehaviour
     void Update()
     {
 
-        if (menu)
-        {
-            menuImage.SetActive(true);
-            if (Input.GetKey(KeyCode.F))
-            {
-                Debug.Log("Pressed F");
-                simulation.AddToLog("fight", "0", lastNPC.IDController.ToString());
-            }
-            else if (Input.GetKey(KeyCode.G))
-            {
-                simulation.AddToLog("give", "0", lastNPC.IDController.ToString());
-            }
-            else if (Input.GetKey(KeyCode.R))
-            {
-                simulation.AddToLog("steal", "0", lastNPC.IDController.ToString());
-            }
-            else if (Input.GetKey(KeyCode.T))
-            {
-                simulation.AddToLog("talk", "0", lastNPC.IDController.ToString());
-            }
-        } else
-        {
-            menuImage.SetActive(false);
-        }
+        //if (menu)
+        //{
+        //    menuImage.SetActive(true);
+        //    if (Input.GetKey(KeyCode.F))
+        //    {
+        //        Debug.Log("Pressed F");
+        //        simulation.AddToLog("fight", "0", lastNPC.IDController.ToString());
+        //    }
+        //    else if (Input.GetKey(KeyCode.G))
+        //    {
+        //        simulation.AddToLog("give", "0", lastNPC.IDController.ToString());
+        //    }
+        //    else if (Input.GetKey(KeyCode.R))
+        //    {
+        //        simulation.AddToLog("steal", "0", lastNPC.IDController.ToString());
+        //    }
+        //    else if (Input.GetKey(KeyCode.T))
+        //    {
+        //        simulation.AddToLog("talk", "0", lastNPC.IDController.ToString());
+        //    }
+        //} else
+        //{
+        //    menuImage.SetActive(false);
+        //}
  
     }
 
@@ -61,7 +61,7 @@ public class mainPlayer : MonoBehaviour
         {
             case "NPC":
                 Debug.Log("Player crashed into NPC");
-                menu = true;
+                //menu = true;
                 //bring up menu for talk or fight? can have it as f to fight and t to talk. g to give and r to steal
                 lastNPC = collision.gameObject.GetComponent<npcScript>();
 
@@ -75,8 +75,8 @@ public class mainPlayer : MonoBehaviour
         switch (collision.gameObject.tag)
         {
             case "NPC":
-                Debug.Log("Player left into NPC");
-                menu = false;
+                Debug.Log("Player crashed into NPC");
+                //menu = false;
                 lastNPC = null;
                 break;
         }

@@ -23,3 +23,30 @@ if fight after steal
 
 if give
 "They were nice I bet they'd be a good friend"
+
+
+
+
+for game need:
+decide who starts the fight
+change the fight so it keeps going until someone escapes or is killed.
+
+make the talk only go into the logs once too
+
+
+
+-------------
+
+don't worry about npc behaviour with each other too much, it's more important with the player.
+
+change it so the player interacts before they touch the npc, and the npc starts the fight etc if they touch them.
+
+
+***********************************************
+
+cannot put npc script in the patterns, because it doesn't work when the player is used. as they are not an npcScript
+change so it just stores the string ID
+
+
+
+

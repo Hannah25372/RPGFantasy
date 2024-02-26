@@ -2,10 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class npcScript : MonoBehaviour
+public class npcScript : MonoBehaviour, InteractableInterface
 {
 
     simulation sim;
+
+    public string name;
 
     //bounds of walking
     public int maxX;
@@ -381,10 +383,20 @@ public class npcScript : MonoBehaviour
         
     }
 
-    
+    public void Interact()
+    {
+        //what it does when it interacts
+    }
 
-   
+    public Transform GetTransform()
+    {
+        return transform;
+    }
 
+    public string GetInteractText()
+    {
+        return name;
+    }
 }
 
 enum Clan 
@@ -400,7 +412,7 @@ public enum Relationship
 
 public enum State
 {
-    IDLE, MOVING, TALKING, FIGHTING, STEALING, STOLENFROM
+    IDLE, MOVING, TALKING, FIGHTING, STEALING, STOLENFROM, STARTFIGHT, JOINFIGHT, ESCAPE, KILL, STARTTALK, JOINTALK, GIVE, RECIEVE
 }
 
 public enum Town

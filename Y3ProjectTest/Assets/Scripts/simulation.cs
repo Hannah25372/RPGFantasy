@@ -98,10 +98,13 @@ public class simulation : MonoBehaviour
     {
         StorySift();
         Influence();
+
+
+        //maybe call influence function after x amount of time of no patterns being advanced, or when you are in proximity to the character in question
     }
 
 
-    //both NPCs call this when they crash into each other
+    //both NPCs call this when they crash into each other. each one takes a turn being npc1 and npc2
     public static State[] NPCInteraction(npcScript npc1, npcScript npc2) 
     {
 
@@ -162,12 +165,12 @@ public class simulation : MonoBehaviour
                 state1 = State.FIGHTING;
                 state2 = State.FIGHTING;
             }
-            else if (traits1.Contains(Traits.Selfish))
+            else if (traits1.Contains(Traits.Selfish) && !traits2.Contains(Traits.Selfish))
             {
                 state1 = State.STEALING;
                 state2 = State.STOLENFROM;
             }
-            else if (traits2.Contains(Traits.Selfish))
+            else if (traits2.Contains(Traits.Selfish) && !traits1.Contains(Traits.Selfish))
             {
                 state1 = State.STOLENFROM;
                 state2 = State.STEALING;
@@ -283,7 +286,7 @@ public class simulation : MonoBehaviour
                         npcScript tempCharB = GetNPCByID(currentLogBreakdown[2]);
                         if (tempCharA == null || tempCharB == null)
                         {
-                            Debug.Log("Character doesn't exist anymore cannot add to pool");
+                            Debug.Log("Creating new pattern: Character doesn't exist anymore cannot add to pool");
                         }
                         else
                         {
@@ -347,6 +350,36 @@ public class simulation : MonoBehaviour
     {
         //makes a list of strings that can be used to influence the player
         //still need to decide when to use them and how and how often etc.
+
+        //vengence
+        // fight.A.B    
+        // escape.B.A
+        // fight.B.A      PlayerA: it's that guy that ran last time, weakling.   PlayerB: he tried to kill you before, you're stronger now go defeat him.
+
+
+
+        //reclaim - kill and steal back pattern
+        //steal_success.A.B
+        //fight.B.A                 //PlayerA:         PlayerB: he stole from you! get him!
+        //kill.B.A                                     PlayerB: go for the kill
+        //loot.B.A                                     PlayerB: take back what is yours
+
+
+        //revenge - killing character that killed friend
+        // kill.A.B
+        // fight.C.A       //PlayerC: he killed your friend         //PlayerA; he looks pissed, they must have been friends
+        // kill.C.A        //PlayerC: give no mercy                       
+        //conditions: character is aggressive. C and A friends
+        //see whether it happens to any characters that are the players friend
+
+        //annoyance
+        //steal_fail.A.B
+        //steal_fail.A.B    PlayerA: we can come back and try again later when he's not looking  PlayerB: who's that guy over there?
+        //fight.B.A         PlayerA: he looks like he wants to start a fight with you now        PlayerB: he keeps trying to steal from you, show him you won't take it.
+
+        //IDEA
+        //leave patterns active for a minute, if they decide not to complete them, scrap them. record how many patterns of each type get completed. and suggest the actions which start those more frequent patterns
+
     }
 
     public npcScript GetNPCByID(string IDstring)
