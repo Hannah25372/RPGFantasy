@@ -7,8 +7,10 @@ public class InteractUI : MonoBehaviour
 {
 
     [SerializeField] private GameObject interactButton;
+    [SerializeField] private GameObject interactButton2;
     [SerializeField] private PlayerInteract interactor;
     public TextMeshProUGUI interactText;
+    public TextMeshProUGUI interactText2;
 
     public mainPlayer player;
 
@@ -16,6 +18,7 @@ public class InteractUI : MonoBehaviour
     {
         if (interactor.GetInteractableObject() != null)
         {
+            
             Show(interactor.GetInteractableObject());
             
         } else
@@ -27,13 +30,25 @@ public class InteractUI : MonoBehaviour
     
     private void Show(InteractableInterface interactable)
     {
-        interactButton.SetActive(true);
-        interactText.text = interactable.GetInteractText();
+
+        if (interactable.GetTransform().gameObject.GetComponent<npcScript>().dead)
+        {
+            interactButton2.SetActive(true);
+            interactButton.SetActive(false);
+            interactText2.text = interactable.GetInteractText();
+        } else
+        {
+            interactButton.SetActive(true);
+            interactButton2.SetActive(false);
+            interactText.text = interactable.GetInteractText();
+        }
+        
     }
 
     
     private void Hide()
     {
         interactButton.SetActive(false);
+        interactButton2.SetActive(false);
     }
 }

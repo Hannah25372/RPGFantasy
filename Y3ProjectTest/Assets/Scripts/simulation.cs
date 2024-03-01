@@ -14,6 +14,8 @@ public class simulation : MonoBehaviour
     private int partialsAdded = 0;
     public List<string> completedPatterns;
 
+    public static bool playerEscape;
+
     private List<PartialBlock> PartialPatternPool;
 
     //public List<npcScript> characters;
@@ -58,14 +60,6 @@ public class simulation : MonoBehaviour
         writer.Close();
     }
 
-    public static void WriteCompletedPattern(string text)
-    {
-        string path = "Assets/TextFiles/CompletedPattern.txt";
-        StreamWriter writer = new StreamWriter(path, true);
-        writer.WriteLine(text);
-        writer.Close();
-    }
-
     public static void ClearPartialPoolText()
     {
         string path = "Assets/TextFiles/PartialPool.txt";
@@ -74,8 +68,22 @@ public class simulation : MonoBehaviour
         writer.Close();
     }
 
-  
 
+    public static void WriteCompletedPattern(string text)
+    {
+        string path = "Assets/TextFiles/CompletedPatterns.txt";
+        StreamWriter writer = new StreamWriter(path, true);
+        writer.WriteLine(text);
+        writer.Close();
+    }
+
+    public static void ClearCompletedText()
+    {
+        string path = "Assets/TextFiles/CompletedPatterns.txt";
+        StreamWriter writer = new StreamWriter(path, false);
+        writer.WriteLine("COMPLETED PATTERNS");
+        writer.Close();
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -85,6 +93,8 @@ public class simulation : MonoBehaviour
         patterns = new List<Pattern>();
         deadNPCs = new List<string>();
         completedPatterns = new List<string>();
+
+        
 
         SetUpPatterns();
 
@@ -192,11 +202,115 @@ public class simulation : MonoBehaviour
 
 
 
+    //take in stats for characters. return map of what happens as fight result.
+    //need to return the result of the fight. i.e the HP of both characters, whether one died, whether one escaped.
+    public static FightResult PlayerStartFight(int[] stats)
+    {
+
+        int HP1 = stats[0];
+        int AC1 = stats[1];
+        int ATK1 = stats[2];
+        int HP2 = stats[3];
+        int AC2 = stats[4];
+        int ATK2 = stats[5];
+
+        //repeat until a kill, or an escape.
+        bool killedNPC = false;
+        bool killedPlayer = false;
+        bool escapedNPC = false;
+        bool escapedPlayer = false;
+
+        float duration = 2f;
+        float time = 0f;
+
+        int damage;
+
+        Debug.Log("1");
+
+        while (!killedNPC && !escapedNPC && !killedPlayer && !escapedPlayer)
+        {
+            Debug.Log("2");
+            //attack 1
+            damage = ATK1 * ((100 - AC2) / 100) * (Random.Range(8, 12) / 10);
+            HP2 -= damage;
+            if (HP2 <= 0)
+            {
+                killedNPC = true;
+                Debug.Log("npc was killed");
+
+            }
+
+            Debug.Log("3");
+            //attack 2
+            if (!killedNPC)
+            {
+                Debug.Log("4");
+                damage = ATK1 * ((100 - AC1) / 100) * (Random.Range(8, 12) / 10);
+                HP1 -= damage;
+                if (HP1 <= 0)
+                {
+                    killedPlayer = true;
+                    Debug.Log("player killed");
+                }
+
+                if (!killedPlayer)
+                {
+                    Debug.Log("5");
+                    //escape 1
+                    if (simulation.playerEscape)
+                    {
+                        escapedPlayer = true;
+                        Debug.Log("player escaped");
+                    }
+
+
+                    if (!escapedPlayer)
+                    {
+                        Debug.Log("6");
+                        //escape 2
+                        if (HP2 < Random.Range(1, 100))
+                        {
+                            escapedNPC = true;
+                            Debug.Log("npc escaped");
+                        }
+                    }
+                }
+
+            }
+        }
+
+        //npc.HPController = HP2;
+
+        if (killedNPC)
+        {
+            //simulation.AddToLog("kill", "0", npc.IDController.ToString());
+        }
+        else if (escapedNPC)
+        {
+            //simulation.AddToLog("escape", npc.IDController.ToString(), "0");
+        }
+        else if (escapedPlayer)
+        {
+            //simulation.AddToLog("escape", "0", npc.IDController.ToString());
+        }
+        else if (escapedNPC)
+        {
+            //simulation.AddToLog("escape", npc.IDController.ToString(), "0");
+            //npc.escape();
+
+        }
+
+        return new FightResult(HP1,HP2,escapedPlayer,escapedNPC,killedPlayer,killedNPC);
+    }
+
+
+
     void StorySift()
     {
         if (lastViewedLog < log.Count - 1) //length = 3. last viewed is 2
         {
             bool addedToPartialPattern = false;
+            bool patternExists = false;
             bool createdNewPattern = false;
             bool completedPattern = false;
             lastViewedLog++;
@@ -207,19 +321,23 @@ public class simulation : MonoBehaviour
             //ADVANCE PATTERN IN POOL
             //does this log complete /advance any partial patterns?
             //loop through partial patterns, is it a point which would be the next action in any? If yes, increment them
-            for (int i = 0; i> PartialPatternPool.Count; i++)
+            for (int i = 0; i < PartialPatternPool.Count; i++)
             {
                 //if the next log matches something in a partial pattern
                 Event eventLooking = PartialPatternPool[i].GetCurrentEvent();
-                if ((eventLooking.action == currentLogBreakdown[0]) && (eventLooking.char1 == currentLogBreakdown[1]) && (eventLooking.char2 == currentLogBreakdown[2]))
+
+                //Debug.Log("Event Looking: " + eventLooking + " current Log: " + currentLogBreakdown);
+                if ((eventLooking.action.Equals(currentLogBreakdown[0])) && (eventLooking.char1.Equals(currentLogBreakdown[1])) && (eventLooking.char2.Equals(currentLogBreakdown[2])))
                 {
                     //there is a match. an log occured which matches an event we need
                     addedToPartialPattern = true;
                     PartialPatternPool[i].incrementEvent();
                     if (PartialPatternPool[i].patternComplete())
                     {
+                        Debug.Log("Pattern Complete: " + PartialPatternPool[i].name);
                         completedPattern = true;
-                        completedPatterns.Add(PartialPatternPool[i].WriteBlock());
+                        PartialPatternPool[i].complete = true;
+                        //completedPatterns.Add(PartialPatternPool[i].WriteBlock());
                         WriteCompletedPattern(PartialPatternPool[i].WriteBlock());
                     }
 
@@ -272,11 +390,25 @@ public class simulation : MonoBehaviour
                 }
 
             }
-           
+
+            //PARTIAL PATTERN EXISTS FOR THAT PATTERN AND CHARACTERS
+            if (!addedToPartialPattern)
+            {
+                foreach (PartialBlock pat in PartialPatternPool)
+                {
+                    if (currentLogBreakdown[0] == pat.firstAction && currentLogBreakdown[1] == pat.charA && currentLogBreakdown[2] == pat.charB)
+                    {
+                        patternExists = true;
+
+                    }
+                }
+            }
+
+
 
             //CREATE NEW PATTERN FOR POOL
             //does this log start a pattern? Opens a PartialPattern and adds to the PartialPatternPool
-            if (!addedToPartialPattern)
+            if (!addedToPartialPattern && !patternExists)
             {
                 foreach (Pattern pat in patterns)
                 {
@@ -288,7 +420,7 @@ public class simulation : MonoBehaviour
                             npcScript tempCharB = GetNPCByID(currentLogBreakdown[2]);
                             if (tempCharB == null)
                             {
-                                Debug.Log("Creating new pattern: Character doesn't exist anymore cannot add to pool");
+                                Debug.Log("Creating new pattern: Character " + currentLogBreakdown[2] + " doesn't exist anymore cannot add to pool");
                             }
                             else
                             {
@@ -306,7 +438,7 @@ public class simulation : MonoBehaviour
                             npcScript tempCharA = GetNPCByID(currentLogBreakdown[1]);
                             if (tempCharA == null)
                             {
-                                Debug.Log("Creating new pattern: Character doesn't exist anymore cannot add to pool");
+                                Debug.Log("Creating new pattern: Character " + currentLogBreakdown[1] + " doesn't exist anymore cannot add to pool");
                             }
                             else
                             {
@@ -354,7 +486,7 @@ public class simulation : MonoBehaviour
             {             
                 foreach(string npc in deadNPCs)
                 {
-                    if (block.containNPC(npc))
+                    if (block.DeadNPC(npc))
                     {
                         blocksToDelete.Add(block);
                     }
@@ -422,22 +554,25 @@ public class simulation : MonoBehaviour
 
     }
 
-    public npcScript GetNPCByID(string IDstring)
+    public static npcScript GetNPCByID(string IDstring)
     {
         int ID = int.Parse(IDstring);
         GameObject[] npcs = GameObject.FindGameObjectsWithTag("NPC");
-        Debug.Log("NPCs found: " + npcs.Length);
+        //Debug.Log("NPCs found: " + npcs.Length);
         List<npcScript> npcScripts = new List<npcScript>();
         foreach (GameObject npc in npcs) {
             npcScripts.Add(npc.GetComponent<npcScript>());      
         }
         foreach(npcScript npc in npcScripts)
         {
-            Debug.Log("NPC test: " + npc);
-            Debug.Log("ID searching: " + ID.ToString() + ". NPC: " + npc.GetID().ToString());
+            //Debug.Log("NPC test: " + npc);
+            //Debug.Log("ID searching: " + ID.ToString() + ". NPC: " + npc.GetID().ToString());
             if (npc.GetID() == ID)
             {
-                return npc;
+                if (!npc.dead)
+                {
+                    return npc;
+                }
             }
         }
         return null;          
@@ -505,19 +640,22 @@ public class simulation : MonoBehaviour
         //conditions: character is aggressive. C and A friends
 
         // stealing back item from character that killed and looted from friend
-        //List<Event> pat4 = new List<Event>();
-        //pat4.Add(new Event("kill", "A", "B", null));
-        //pat4.Add(new Event("loot", "A", "B", "AA"));
-        //pat4.Add(new Event("steal_success", "C", "A", "AA"));
-        //Pattern pattern4 = new(PatternName.revenge, pat4, true);
+        List<Event> pat4 = new List<Event>();
+        pat4.Add(new Event("kill", "A", "B", null));
+        pat4.Add(new Event("loot", "A", "B", "AA"));
+        pat4.Add(new Event("steal_success", "C", "A", "AA"));
+        Pattern pattern4 = new(PatternName.REVENGE2, pat4, true);
         //conditions: character not agressive. C and A friends
 
         //annoyance - character failed a steal and kept getting caught, annoys other character
         List<Event> pat5 = new List<Event>();
         pat5.Add(new Event("steal_fail", "A", "B", null));
+        pat5.Add(new Event("steal_fail", "A", "B", null));
         pat5.Add(new Event("steal_fail", "A", "B", null));  //maybe you should try stealing again later
-        pat5.Add(new Event("fight", "B", "A", null));  //he keeps stealing from you, he won't stop unless you stop him.
+        //pat5.Add(new Event("fight", "B", "A", null));  //he keeps stealing from you, he won't stop unless you stop him.
         Pattern pattern5 = new(PatternName.ANNOYANCE, pat5, false);
+
+        
 
         patterns.Add(pattern1);
         patterns.Add(pattern2);
@@ -588,16 +726,20 @@ class PartialBlock
 {
     Pattern patternTemplate;
     Pattern patternFollow;
-    string charA;
-    string charB;
+    public string charA;
+    public string charB;
     string charC;
     List<Event> patternFollowEventsList;
     int currentEvent;
     int patternLength;
     int ID;
+    public string firstAction;
+    public bool complete;
+    public PatternName name;
 
     public PartialBlock(Pattern pattern, string _charA, string _charB, int _ID)
     {
+        complete = false;
         patternTemplate = pattern;
         charA = _charA;
         charB = _charB;
@@ -605,6 +747,8 @@ class PartialBlock
         patternFollowEventsList = new List<Event>();
         currentEvent = 1;
         ID = _ID;
+        firstAction = patternTemplate.getEvent(0).action;
+        name = pattern.name;
  
         //sets up event list with correct characters in the pattern (as strings of their ID
         foreach(Event _event in patternTemplate.GetEvents())
@@ -701,7 +845,7 @@ class PartialBlock
     public bool patternComplete()
     {
         //length 3. if i am on current 2, there is one more to complete
-        if (currentEvent > patternLength)
+        if (currentEvent >= patternLength)
         {
             return true;
         } else
@@ -726,12 +870,57 @@ class PartialBlock
             return false;         
     }
 
+    public bool DeadNPC(string id)
+    {
+        for (int i = currentEvent; i < patternFollowEventsList.Count; i++)
+        {
+            Debug.Log(patternFollowEventsList[i]);
+            if (patternFollowEventsList[i].char2 == id || patternFollowEventsList[i].char1 == id)
+            {
+                if (patternFollowEventsList[i].char2 == id && patternFollowEventsList[i].action == "loot")
+                {
+                    //they can be dead and looted
+                    Debug.Log("can be dead and looted");
+                } else if (patternFollowEventsList[i].char2 == id && patternFollowEventsList[i].action == "kill")
+                {
+                   
+                    Debug.Log("kill check if still the current one");
+                }
+                {
+                    return true;
+
+                }
+            }
+        }
+        return false;
+    }
+
 }
 
 
 //pattern names
 enum PatternName
 {
-    REVENGE, VENGENCE, RECLAIM, ANNOYANCE
+    REVENGE, VENGENCE, RECLAIM, ANNOYANCE, REVENGE2
 }
 
+public class FightResult {
+
+    public int HP1;
+    public int HP2;
+    public bool escape1;
+    public bool escpae2;
+    public bool die1;
+    public bool dies2;
+   
+
+    public FightResult(int HP1, int HP2, bool escape1, bool escpae2, bool die1, bool dies2)
+    {
+        this.HP1 = HP1;
+        this.HP2 = HP2;
+        this.escape1 = escape1;
+        this.escpae2 = escpae2;
+        this.die1 = die1;
+        this.dies2 = dies2;
+    }
+}

@@ -18,8 +18,8 @@ namespace Retro.ThirdPersonCharacter
 
         private void Update()
         {
-            _attackInput = Input.GetMouseButtonDown(0);
-            _specialAttackInput = Input.GetMouseButtonDown(1);
+            _attackInput = Input.GetMouseButtonDown(1);
+            _specialAttackInput = Input.GetMouseButtonDown(0);
 
             _movementInput.Set(Input.GetAxis("Horizontal"),Input.GetAxis("Vertical"));
             _jumpInput = Input.GetButton("Jump");

@@ -28,6 +28,8 @@ public class npcScript : MonoBehaviour, InteractableInterface
     public float time;
     public float duration;
 
+    float deathTimer;
+
     //character attributes
     [SerializeField] private int ID;
     [SerializeField] private List<Traits> traits;
@@ -41,15 +43,31 @@ public class npcScript : MonoBehaviour, InteractableInterface
 
     private npcScript lastInteractedPlayer;
 
+    public bool dead;
+
     
     public int HPController { get => HP; set
         {
-            HP = Mathf.Clamp(value, 0, 10);
+            HP = Mathf.Clamp(value, 0, 100);
             if (HP == 0)
             {
-                simulation.AddToLog("kill", lastInteractedPlayer.IDController.ToString(), ID.ToString());
+                if (lastInteractedPlayer == null) {
+                    simulation.AddToLog("kill", "0", ID.ToString());
+                } 
+                else
+                {
+                    simulation.AddToLog("kill", lastInteractedPlayer.IDController.ToString(), ID.ToString());
+                }
                 simulation.deadNPCs.Add(ID.ToString());
-                Destroy(gameObject);
+                dead = true;
+                state = State.DEAD;
+                animator.StopPlayback();
+                ps.Stop();
+                transform.Rotate(90, 0, 0);
+                //gameObject.GetComponent<CapsuleCollider>().enabled = false;
+                //gameObject.GetComponent<npcScript>().enabled = false;
+
+                //Destroy(gameObject);
 
             }
         }
@@ -84,6 +102,9 @@ public class npcScript : MonoBehaviour, InteractableInterface
         rotateDirection = 180f;
 
         duration = 3f;
+        deathTimer = 0f;
+
+        dead = false;
 
         state = State.MOVING;
         animator.SetBool("isWalking", true);
@@ -120,13 +141,21 @@ public class npcScript : MonoBehaviour, InteractableInterface
 
         if (state == State.FIGHTING)
         {
-            timer3sec();
+            timer(3);
+        }
+
+        if (state == State.DEAD || dead)
+        {
+            state = State.DEAD;
+            
+
         }
 
 
 
     }
 
+   
 
     void moveToLocation()
     {
@@ -157,6 +186,27 @@ public class npcScript : MonoBehaviour, InteractableInterface
             state = State.MOVING;
             animator.SetBool("isWalking", true);
         }      
+    }
+
+    //the other is the one who steals
+    void NoticeSteal()
+    {
+        int rand = Random.Range(1, 3); //either 1 or 2
+        if (rand == 1) //success
+        {
+            simulation.AddToLog("steal_success", "0", ID.ToString(), "obj1");
+            state = State.MOVING;
+            animator.SetBool("isWalking", true);
+            //swap the object in question
+        }
+        else //fail
+        {
+            simulation.AddToLog("steal_fail", "0", ID.ToString(), "obj1");
+            timer(2);
+            state = State.MOVING;
+            animator.SetBool("isWalking", true);
+            //make them stop and look at you.
+        }
     }
 
 
@@ -199,7 +249,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
         }
     }
 
-    void timer3sec()
+    void timer(float duration)
     {
         if (time < duration)
         {
@@ -224,18 +274,21 @@ public class npcScript : MonoBehaviour, InteractableInterface
         ps.Play();
         if(ATK > otherNPC.ACControllor)
         {
-            otherNPC.HPController = -2;
+            otherNPC.HPController =- Random.Range(0,20);
         } else
         {
-            HPController -= 2;
+            //HPController -= 2;
         }
 
 
     }
 
-    void escape()
+    public void escape()
     {
-
+        animator.SetBool("isWalking", true);
+        state = State.MOVING;
+        rotates(150, 210);
+        moves();
     }
 
     void chase()
@@ -332,15 +385,44 @@ public class npcScript : MonoBehaviour, InteractableInterface
     }
     private void OnCollisionEnter(Collision collision)
     {
+        if (!dead)
+        {
 
+        
         switch (collision.gameObject.tag)
         {
             case "Player":
-                Debug.Log("Crashed into Player");
+                Debug.Log(ID.ToString() + " crashed into Player");
                 lastInteractedPlayer = null;
-                animator.SetBool("isWalking", false);
-                state = State.TALKING;
 
+                switch (Random.Range(0, 15))
+                {
+                    case < 3:
+                        animator.SetBool("isWalking", false);
+                        state = State.TALKING;
+                        simulation.AddToLog("talk", ID.ToString(), "0");
+                        break;
+                    case < 8:
+                        ps.Play();
+                        animator.SetBool("isWalking", false);
+                        state = State.FIGHTING;
+                        simulation.AddToLog("fight", ID.ToString(), "0");
+                        collision.gameObject.GetComponent<mainPlayer>().ReduceHP(10);
+                        break;
+                    case < 12:
+                        if (Random.Range(0, 2) == 1)
+                        {
+                            simulation.AddToLog("steal_fail", ID.ToString(), "0");
+                        } else
+                        {
+                            simulation.AddToLog("steal_success", ID.ToString(), "0");
+                        }
+                        break;
+                    case < 15:
+                        simulation.AddToLog("give", ID.ToString(), "0");
+                        break;
+
+                }
                 break;
 
             case "NPC":
@@ -362,30 +444,66 @@ public class npcScript : MonoBehaviour, InteractableInterface
                 //    Debug.Log(ID + " or " + otherID + " already interacting");
                 //}
 
-                animator.SetBool("isWalking", false);
-                var stateAgainstNPC = simulation.NPCInteraction(this, collision.collider.GetComponent<npcScript>());
-                state = stateAgainstNPC[0];
+                if (otherNPC.dead)
+                {
+                    if (Random.Range(0, 2) == 0)
+                    {
+                        simulation.AddToLog("loot", ID.ToString(), otherID.ToString());
+                        state = State.TALKING;
+                    }
+                    rotates(150, 210);
 
-                //the interactions in here are just of this format, don't wanna add the steal tho
-                simulation.AddToLog(state, ID.ToString() , otherID.ToString());
+                    } else {
+                    animator.SetBool("isWalking", false);
+                    var stateAgainstNPC = simulation.NPCInteraction(this, collision.collider.GetComponent<npcScript>());
+                    state = stateAgainstNPC[0];
 
-                if (state == State.FIGHTING) Fight(otherNPC);
-                if (state == State.STEALING) AttemptSteal(otherNPC);
-                if (state == State.STOLENFROM) NoticeSteal(otherNPC);
+                    //the interactions in here are just of this format, don't wanna add the steal tho
+                    simulation.AddToLog(state, ID.ToString(), otherID.ToString());
 
+                    if (state == State.FIGHTING) Fight(otherNPC);
+                    if (state == State.STEALING) AttemptSteal(otherNPC);
+                    if (state == State.STOLENFROM) NoticeSteal(otherNPC);
+                }
 
                 break;
             default:
                 rotates(150, 210);
                 break;
         }
+    }
 
         
     }
 
-    public void Interact()
+    public void Interact(string interaction)
     {
         //what it does when it interacts
+        //handle the fight either just here or as player, and then tell them the result
+        state = State.IDLE;
+        animator.SetBool("isWalking", false);
+        lastInteractedPlayer = null;
+        transform.LookAt(GameObject.FindGameObjectWithTag("Player").transform);
+
+        switch (interaction)
+        {
+            case "fight":
+                ps.Play();
+                HPController -= 10;
+                state = State.FIGHTING;
+                break;
+            case "give":
+                state = State.RECIEVE;
+                break;
+            case "steal":
+                NoticeSteal();
+                break;
+            case "talk":
+                state = State.TALKING;
+                break;
+            default:
+                break;
+        }
     }
 
     public Transform GetTransform()
@@ -399,11 +517,6 @@ public class npcScript : MonoBehaviour, InteractableInterface
     }
 }
 
-enum Clan 
-{ 
- blue,
- red,
-}
 
 public enum Relationship
 {
@@ -412,7 +525,7 @@ public enum Relationship
 
 public enum State
 {
-    IDLE, MOVING, TALKING, FIGHTING, STEALING, STOLENFROM, STARTFIGHT, JOINFIGHT, ESCAPE, KILL, STARTTALK, JOINTALK, GIVE, RECIEVE
+    IDLE, MOVING, TALKING, FIGHTING, STEALING, STOLENFROM, STARTFIGHT, JOINFIGHT, ESCAPE, KILL, STARTTALK, JOINTALK, GIVE, RECIEVE, DEAD
 }
 
 public enum Town

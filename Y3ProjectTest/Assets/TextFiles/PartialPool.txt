@@ -1,1 +1,26 @@
 PARTIAL POOL
+ANNOYANCE
+ steal_fail 3 0
+ steal_fail 3 0 <-- looking for next
+ steal_fail 3 0
+
+VENGENCE
+ fight 3 4
+ escape 4 3 <-- looking for next
+ fight 4 3
+
+VENGENCE
+ fight 4 3
+ escape 3 4 <-- looking for next
+ fight 3 4
+
+VENGENCE
+ fight 3 0
+ escape 0 3 <-- looking for next
+ fight 0 3
+
+VENGENCE
+ fight 4 0
+ escape 0 4 <-- looking for next
+ fight 0 4
+

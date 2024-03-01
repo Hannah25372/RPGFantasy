@@ -10,31 +10,28 @@ public class PlayerInteract : MonoBehaviour
     //Checks if there is something to interact with
     public void Update()
     {
-        //if (Input.GetKeyDown(KeyCode.E))
-        //{
-        //    InteractableInterface interactable = GetInteractableObject();
-        //    if (interactable != null)
-        //    {
-        //        interactable.Interact();
-        //        //interactable.GetTransform().gameObject.GetComponent<npcScript>().IDController.ToString();
-        //    }
-        //}
-
-        
+       
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
-            Debug.Log("pressed F");
             InteractableInterface interactable = GetInteractableObject();
             if (interactable != null)
             {
-                simulation.AddToLog("fight", "0", interactable.GetTransform().gameObject.GetComponent<npcScript>().IDController.ToString());
+                player.state = State.FIGHTING;
+                npcScript npc = interactable.GetTransform().gameObject.GetComponent<npcScript>();
+                simulation.AddToLog("fight", "0", npc.IDController.ToString());
+                interactable.Interact("fight");
+
+                //int[] stats = new int[] { player.HP, player.AC, player.ATK, npc.HPController, npc.ACControllor, npc.ATKController };
+                //FightResult results = simulation.PlayerStartFight(stats);
             }
         }
+
         else if (Input.GetKeyDown(KeyCode.R))
         {
             InteractableInterface interactable = GetInteractableObject();
             if (interactable != null)
             {
+                interactable.Interact("give");
                 simulation.AddToLog("give", "0", interactable.GetTransform().gameObject.GetComponent<npcScript>().IDController.ToString());
             }
         }
@@ -43,7 +40,16 @@ public class PlayerInteract : MonoBehaviour
             InteractableInterface interactable = GetInteractableObject();
             if (interactable != null)
             {
-                simulation.AddToLog("steal", "0", interactable.GetTransform().gameObject.GetComponent<npcScript>().IDController.ToString());
+                if (interactable.GetTransform().gameObject.GetComponent<npcScript>().dead)
+                {
+                    simulation.AddToLog("loot", "0", interactable.GetTransform().gameObject.GetComponent<npcScript>().IDController.ToString());
+                }
+                else
+                {
+                    interactable.Interact("steal");
+                }
+                
+                //simulation.AddToLog("steal", "0", interactable.GetTransform().gameObject.GetComponent<npcScript>().IDController.ToString());
             }
         }
         else if (Input.GetKeyDown(KeyCode.E))
@@ -51,15 +57,19 @@ public class PlayerInteract : MonoBehaviour
             InteractableInterface interactable = GetInteractableObject();
             if (interactable != null)
             {
+                interactable.Interact("talk");
                 simulation.AddToLog("talk", "0", interactable.GetTransform().gameObject.GetComponent<npcScript>().IDController.ToString());
             }
-        }
+        } 
 
 
 
 
     }
 
+
+
+   
 
     //Called to find the closest interacable object
     public InteractableInterface GetInteractableObject()

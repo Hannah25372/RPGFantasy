@@ -4,7 +4,7 @@ using UnityEngine;
 
 public interface InteractableInterface
 {
-    void Interact();
+    void Interact(string interaction);
     Transform GetTransform();
 
     //void Interact(Transform interactorTransform);

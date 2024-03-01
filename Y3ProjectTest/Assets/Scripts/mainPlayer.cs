@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class mainPlayer : MonoBehaviour
 
@@ -11,6 +12,17 @@ public class mainPlayer : MonoBehaviour
     private GameObject menuImage;
     private npcScript lastNPC;
 
+    public TextMeshProUGUI HPText;
+    public TextMeshProUGUI ACText;
+    public TextMeshProUGUI ATKText;
+
+    public int HP = 100;
+    public int AC = 60;
+    public int ATK = 80;
+
+    public State state;
+
+
 
     // Start is called before the first frame update
     void Start()
@@ -20,37 +32,57 @@ public class mainPlayer : MonoBehaviour
         menuImage = GameObject.Find("Canvas").transform.Find("KeyMap").gameObject;
         menuImage.SetActive(false);
         lastNPC = null;
+
+        HPText.text = HP.ToString();
+        ACText.text = AC.ToString();
+        ATKText.text = ATK.ToString();
+
+        state = State.IDLE;
     }
 
     // Update is called once per frame
     void Update()
     {
 
-        //if (menu)
-        //{
-        //    menuImage.SetActive(true);
-        //    if (Input.GetKey(KeyCode.F))
-        //    {
-        //        Debug.Log("Pressed F");
-        //        simulation.AddToLog("fight", "0", lastNPC.IDController.ToString());
-        //    }
-        //    else if (Input.GetKey(KeyCode.G))
-        //    {
-        //        simulation.AddToLog("give", "0", lastNPC.IDController.ToString());
-        //    }
-        //    else if (Input.GetKey(KeyCode.R))
-        //    {
-        //        simulation.AddToLog("steal", "0", lastNPC.IDController.ToString());
-        //    }
-        //    else if (Input.GetKey(KeyCode.T))
-        //    {
-        //        simulation.AddToLog("talk", "0", lastNPC.IDController.ToString());
-        //    }
-        //} else
-        //{
-        //    menuImage.SetActive(false);
-        //}
+        if (state == State.FIGHTING)
+        {
+            if (Input.GetKeyDown(KeyCode.Q))
+            {
+                simulation.playerEscape = true;
+            }
+        } else
+        {
+            simulation.playerEscape = false;
+        }
+       
  
+    }
+
+
+    public void ReduceHP(int HP)
+    {
+        this.HP -= HP;
+        HPText.text = HP.ToString();
+    }
+    public void SetHP(int HP)
+    {
+        this.HP = HP;
+        HPText.text = HP.ToString();
+
+    }
+
+    public void SetAC(int AC)
+    {
+        this.AC = AC;
+        ACText.text = AC.ToString();
+
+    }
+
+    public void SetATK(int ATK)
+    {
+        this.ATK = ATK;
+        ATKText.text = ATK.ToString();
+
     }
 
 
