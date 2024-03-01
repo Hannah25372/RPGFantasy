@@ -16,11 +16,14 @@ public class PlayerInteract : MonoBehaviour
             InteractableInterface interactable = GetInteractableObject();
             if (interactable != null)
             {
-                player.state = State.FIGHTING;
-                npcScript npc = interactable.GetTransform().gameObject.GetComponent<npcScript>();
-                simulation.AddToLog("fight", "0", npc.IDController.ToString());
-                interactable.Interact("fight");
-
+                if (!interactable.GetTransform().gameObject.GetComponent<npcScript>().dead)
+                {
+                    player.state = State.FIGHTING;
+                    npcScript npc = interactable.GetTransform().gameObject.GetComponent<npcScript>();
+                    simulation.AddToLog("fight", "0", npc.IDController.ToString());
+                    interactable.Interact("fight");
+                }
+                
                 //int[] stats = new int[] { player.HP, player.AC, player.ATK, npc.HPController, npc.ACControllor, npc.ATKController };
                 //FightResult results = simulation.PlayerStartFight(stats);
             }
@@ -31,8 +34,11 @@ public class PlayerInteract : MonoBehaviour
             InteractableInterface interactable = GetInteractableObject();
             if (interactable != null)
             {
-                interactable.Interact("give");
-                simulation.AddToLog("give", "0", interactable.GetTransform().gameObject.GetComponent<npcScript>().IDController.ToString());
+                if (!interactable.GetTransform().gameObject.GetComponent<npcScript>().dead)
+                {
+                    interactable.Interact("give");
+                    simulation.AddToLog("give", "0", interactable.GetTransform().gameObject.GetComponent<npcScript>().IDController.ToString());
+                }
             }
         }
         else if (Input.GetKeyDown(KeyCode.Mouse1))
@@ -57,8 +63,11 @@ public class PlayerInteract : MonoBehaviour
             InteractableInterface interactable = GetInteractableObject();
             if (interactable != null)
             {
-                interactable.Interact("talk");
-                simulation.AddToLog("talk", "0", interactable.GetTransform().gameObject.GetComponent<npcScript>().IDController.ToString());
+                if (!interactable.GetTransform().gameObject.GetComponent<npcScript>().dead)
+                {
+                    interactable.Interact("talk");
+                    simulation.AddToLog("talk", "0", interactable.GetTransform().gameObject.GetComponent<npcScript>().IDController.ToString());
+                }
             }
         } 
 

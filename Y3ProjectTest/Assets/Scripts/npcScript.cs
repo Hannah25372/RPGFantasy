@@ -61,6 +61,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
                 simulation.deadNPCs.Add(ID.ToString());
                 dead = true;
                 state = State.DEAD;
+                animator.SetBool("isWalking", false);
                 animator.StopPlayback();
                 ps.Stop();
                 transform.Rotate(90, 0, 0);
@@ -110,16 +111,6 @@ public class npcScript : MonoBehaviour, InteractableInterface
         animator.SetBool("isWalking", true);
 
 
-        //npcScript[] npcScripts = GameObject.FindObjectsOfType<npcScript>();
-        //foreach (var npc in npcScripts) 
-        //{
-        //    if(npc.clan == this.clan)
-        //    npcRelationShip.Add(npc, Relationship.Friend);
-        //    else
-        //}
-        
-
-        
         
     }
 
@@ -211,7 +202,8 @@ public class npcScript : MonoBehaviour, InteractableInterface
 
 
     void give() 
-    { }
+    { 
+    }
 
     void pickUp()
     {
@@ -223,15 +215,6 @@ public class npcScript : MonoBehaviour, InteractableInterface
 
     }
 
-    void loot()
-    {
-
-    }
-
-    void kill()
-    {
-
-    }
 
     void talk()
     {
@@ -280,6 +263,13 @@ public class npcScript : MonoBehaviour, InteractableInterface
             //HPController -= 2;
         }
 
+        //chance they escape the fight
+        if (Random.Range(0, 2) == 0 && !dead)
+        {
+            simulation.AddToLog("escape", ID.ToString(), "0");
+            escape();
+        }
+
 
     }
 
@@ -287,16 +277,9 @@ public class npcScript : MonoBehaviour, InteractableInterface
     {
         animator.SetBool("isWalking", true);
         state = State.MOVING;
+        ps.Stop();
         rotates(150, 210);
         moves();
-    }
-
-    void chase()
-    {
-
-    }
-
-    void _catch() { 
     }
 
 
@@ -408,6 +391,12 @@ public class npcScript : MonoBehaviour, InteractableInterface
                         state = State.FIGHTING;
                         simulation.AddToLog("fight", ID.ToString(), "0");
                         collision.gameObject.GetComponent<mainPlayer>().ReduceHP(10);
+                            //small chance they escape the fight they started with player.
+                        if (Random.Range(0, 7) == 0)
+                            {
+                                simulation.AddToLog("escape", ID.ToString(), "0");
+                                escape();
+                            }
                         break;
                     case < 12:
                         if (Random.Range(0, 2) == 1)
@@ -491,6 +480,13 @@ public class npcScript : MonoBehaviour, InteractableInterface
                 ps.Play();
                 HPController -= 10;
                 state = State.FIGHTING;
+                //bigger chance they escape the fight player started
+                if (Random.Range(0, 2) == 0 && !dead)
+                {
+                    simulation.AddToLog("escape", ID.ToString(), "0");
+                    escape();
+                }
+
                 break;
             case "give":
                 state = State.RECIEVE;

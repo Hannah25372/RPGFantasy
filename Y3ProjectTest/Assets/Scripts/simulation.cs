@@ -872,26 +872,31 @@ class PartialBlock
 
     public bool DeadNPC(string id)
     {
+        Debug.Log("pattern " + name);
         for (int i = currentEvent; i < patternFollowEventsList.Count; i++)
         {
-            Debug.Log(patternFollowEventsList[i]);
+            Debug.Log(patternFollowEventsList[i].action + " " + patternFollowEventsList[i].char1 + " " + patternFollowEventsList[i].char2);
             if (patternFollowEventsList[i].char2 == id || patternFollowEventsList[i].char1 == id)
             {
                 if (patternFollowEventsList[i].char2 == id && patternFollowEventsList[i].action == "loot")
                 {
                     //they can be dead and looted
                     Debug.Log("can be dead and looted");
-                } else if (patternFollowEventsList[i].char2 == id && patternFollowEventsList[i].action == "kill")
+                } 
+                else if (patternFollowEventsList[i].char2 == id && patternFollowEventsList[i].action == "kill")
                 {
                    
                     Debug.Log("kill check if still the current one");
-                }
+                } 
+                else 
                 {
+                    Debug.Log("dead character involved");
                     return true;
 
                 }
             }
         }
+        Debug.Log("no dead character involved");
         return false;
     }
 

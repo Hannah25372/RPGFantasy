@@ -3,3 +3,14 @@ ANNOYANCE
  steal_fail 0 3
  steal_fail 0 3
 
+RECLAIM
+ steal_success 2 0
+ fight 0 2
+ kill 0 2
+ loot 0 2
+
+VENGENCE
+ fight 0 1
+ escape 1 0
+ fight 1 0
+

@@ -44,6 +44,8 @@ public class mainPlayer : MonoBehaviour
     void Update()
     {
 
+       
+
         if (state == State.FIGHTING)
         {
             if (Input.GetKeyDown(KeyCode.Q))
