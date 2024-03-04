@@ -1,7 +1,1 @@
 LOG FILE
-talk.2.4
-talk.4.2
-fight.4.1
-kill.0.1
-escape.4.0
-talk.3.0

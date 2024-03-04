@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using TMPro;
 
 public class simulation : MonoBehaviour
 {
@@ -9,14 +10,21 @@ public class simulation : MonoBehaviour
     public static List<string> log;
     public static int lastViewedLog = -1;
     public static string currentLog;
+
     private List<Pattern> patterns;
     public static List<string> deadNPCs;
     private int partialsAdded = 0;
-    public List<string> completedPatterns;
+    public List<PartialBlock> completedPatterns;
+    public Dictionary<string, string> npcNames;
+    public Dictionary<string, string> suggestionTextDictionary;
 
-    public static bool playerEscape;
+    public TextMeshProUGUI suggestionText;
+    public float influenceTimer;
+    public bool influenceOn;
 
-    private List<PartialBlock> PartialPatternPool;
+   
+
+    private static List<PartialBlock> PartialPatternPool;
 
     //public List<npcScript> characters;
     //they have: HP, AC, ATK, traits, relationships, objectsHolding, location
@@ -24,14 +32,14 @@ public class simulation : MonoBehaviour
     //things NPC can do:
     ////talk to each other
     ////fight
-    ////mercy
     ////escape
-    ////chase
-    ////catch
     ////kill
     ////loot 
     ////steal
     ////give
+
+   
+
 
     public static void WriteToLog(string text)
     {
@@ -68,7 +76,6 @@ public class simulation : MonoBehaviour
         writer.Close();
     }
 
-
     public static void WriteCompletedPattern(string text)
     {
         string path = "Assets/TextFiles/CompletedPatterns.txt";
@@ -92,23 +99,50 @@ public class simulation : MonoBehaviour
         PartialPatternPool = new List<PartialBlock>();
         patterns = new List<Pattern>();
         deadNPCs = new List<string>();
-        completedPatterns = new List<string>();
+        completedPatterns = new List<PartialBlock>();
+        npcNames = new Dictionary<string, string>();
 
-        
+        npcNames.Add("1", "Rowan");
+        npcNames.Add("2", "Lukas");
+        npcNames.Add("3", "Gabriel");
+        npcNames.Add("4", "Victor");
+
+        influenceTimer = 0f;
+
 
         SetUpPatterns();
+        SetUpInfluenceDictionary();
 
         ClearLogText();
         ClearPartialPoolText();
+        ClearCompletedText();
 
     }
 
     // Update is called once per frame
     void Update()
     {
+        //every frame
         StorySift();
-        Influence();
 
+        if (influenceOn)
+        {
+
+            //every 3 seconds
+            if (influenceTimer > 3f)
+            {
+                influenceTimer = 0f;
+                Influence();
+            }
+            else
+            {
+                influenceTimer += Time.deltaTime;
+            }
+
+        } else
+        {
+
+        }
 
         //maybe call influence function after x amount of time of no patterns being advanced, or when you are in proximity to the character in question
     }
@@ -201,110 +235,6 @@ public class simulation : MonoBehaviour
     }
 
 
-
-    //take in stats for characters. return map of what happens as fight result.
-    //need to return the result of the fight. i.e the HP of both characters, whether one died, whether one escaped.
-    public static FightResult PlayerStartFight(int[] stats)
-    {
-
-        int HP1 = stats[0];
-        int AC1 = stats[1];
-        int ATK1 = stats[2];
-        int HP2 = stats[3];
-        int AC2 = stats[4];
-        int ATK2 = stats[5];
-
-        //repeat until a kill, or an escape.
-        bool killedNPC = false;
-        bool killedPlayer = false;
-        bool escapedNPC = false;
-        bool escapedPlayer = false;
-
-        float duration = 2f;
-        float time = 0f;
-
-        int damage;
-
-        Debug.Log("1");
-
-        while (!killedNPC && !escapedNPC && !killedPlayer && !escapedPlayer)
-        {
-            Debug.Log("2");
-            //attack 1
-            damage = ATK1 * ((100 - AC2) / 100) * (Random.Range(8, 12) / 10);
-            HP2 -= damage;
-            if (HP2 <= 0)
-            {
-                killedNPC = true;
-                Debug.Log("npc was killed");
-
-            }
-
-            Debug.Log("3");
-            //attack 2
-            if (!killedNPC)
-            {
-                Debug.Log("4");
-                damage = ATK1 * ((100 - AC1) / 100) * (Random.Range(8, 12) / 10);
-                HP1 -= damage;
-                if (HP1 <= 0)
-                {
-                    killedPlayer = true;
-                    Debug.Log("player killed");
-                }
-
-                if (!killedPlayer)
-                {
-                    Debug.Log("5");
-                    //escape 1
-                    if (simulation.playerEscape)
-                    {
-                        escapedPlayer = true;
-                        Debug.Log("player escaped");
-                    }
-
-
-                    if (!escapedPlayer)
-                    {
-                        Debug.Log("6");
-                        //escape 2
-                        if (HP2 < Random.Range(1, 100))
-                        {
-                            escapedNPC = true;
-                            Debug.Log("npc escaped");
-                        }
-                    }
-                }
-
-            }
-        }
-
-        //npc.HPController = HP2;
-
-        if (killedNPC)
-        {
-            //simulation.AddToLog("kill", "0", npc.IDController.ToString());
-        }
-        else if (escapedNPC)
-        {
-            //simulation.AddToLog("escape", npc.IDController.ToString(), "0");
-        }
-        else if (escapedPlayer)
-        {
-            //simulation.AddToLog("escape", "0", npc.IDController.ToString());
-        }
-        else if (escapedNPC)
-        {
-            //simulation.AddToLog("escape", npc.IDController.ToString(), "0");
-            //npc.escape();
-
-        }
-
-        return new FightResult(HP1,HP2,escapedPlayer,escapedNPC,killedPlayer,killedNPC);
-    }
-
-
-
     void StorySift()
     {
         if (lastViewedLog < log.Count - 1) //length = 3. last viewed is 2
@@ -360,7 +290,7 @@ public class simulation : MonoBehaviour
                             if (PartialPatternPool[i].patternComplete())
                             {
                                 completedPattern = true;
-                                completedPatterns.Add(PartialPatternPool[i].WriteBlock());
+                                completedPatterns.Add(PartialPatternPool[i]);
                                 WriteCompletedPattern(PartialPatternPool[i].WriteBlock());
                             }
                         }
@@ -381,7 +311,7 @@ public class simulation : MonoBehaviour
                             if (PartialPatternPool[i].patternComplete())
                             {
                                 completedPattern = true;
-                                completedPatterns.Add(PartialPatternPool[i].WriteBlock());
+                                completedPatterns.Add(PartialPatternPool[i]);
                                 WriteCompletedPattern(PartialPatternPool[i].WriteBlock());
                             }
                         }
@@ -518,42 +448,136 @@ public class simulation : MonoBehaviour
     }
 
     
-    void Influence()
+    void SetUpInfluenceDictionary()
     {
-        //makes a list of strings that can be used to influence the player
-        //still need to decide when to use them and how and how often etc.
+        suggestionTextDictionary = new Dictionary<string, string>();
 
-        //vengence
-        // fight.A.B    
-        // escape.B.A
-        // fight.B.A      PlayerA: it's that guy that ran last time, weakling.   PlayerB: he tried to kill you before, you're stronger now go defeat him.
+        suggestionTextDictionary.Add("VENGENCE11",""); //no suggestion for escape
+        suggestionTextDictionary.Add("VENGENCE12", ""); //no suggestion for escape
+        suggestionTextDictionary.Add("VENGENCE21", "X tried to fight you before. You're stronger now you should go and defeat him.");
+        suggestionTextDictionary.Add("VENGENCE22", "X ran from you, what a weakling.");
+
+        suggestionTextDictionary.Add("RECLAIM11", "X stole from you! Get him! Fight him!");
+        suggestionTextDictionary.Add("RECLAIM12", "");
+        suggestionTextDictionary.Add("RECLAIM21", "Go for the kill! X won't get away with taking what's yours.");
+        suggestionTextDictionary.Add("RECLAIM22", "");
+        suggestionTextDictionary.Add("RECLAIM31", "Time to loot X now!");
+        suggestionTextDictionary.Add("RECLAIM32", "");
+
+        suggestionTextDictionary.Add("ANNOYANCE11", "We can try stealing from X again when he's not looking.");
+        suggestionTextDictionary.Add("ANNOYANCE12", "It's X over there, shall we say hello?");
+        suggestionTextDictionary.Add("ANNOYANCE21", "We can try stealing from X again when he's not looking.");
+        suggestionTextDictionary.Add("ANNOYANCE22", "X has tried stealing from you twice now! You gonna take this?");
 
 
-
-        //reclaim - kill and steal back pattern
-        //steal_success.A.B
-        //fight.B.A                 //PlayerA:         PlayerB: he stole from you! get him!
-        //kill.B.A                                     PlayerB: go for the kill
-        //loot.B.A                                     PlayerB: take back what is yours
-
-
-        //revenge - killing character that killed friend
-        // kill.A.B
-        // fight.C.A       //PlayerC: he killed your friend         //PlayerA; he looks pissed, they must have been friends
-        // kill.C.A        //PlayerC: give no mercy                       
-        //conditions: character is aggressive. C and A friends
-        //see whether it happens to any characters that are the players friend
-
-        //annoyance
-        //steal_fail.A.B
-        //steal_fail.A.B    PlayerA: we can come back and try again later when he's not looking  PlayerB: who's that guy over there?
-        //fight.B.A         PlayerA: he looks like he wants to start a fight with you now        PlayerB: he keeps trying to steal from you, show him you won't take it.
-
-        //IDEA
-        //leave patterns active for a minute, if they decide not to complete them, scrap them. record how many patterns of each type get completed. and suggest the actions which start those more frequent patterns
 
     }
+    PartialBlock ChoosePatternToInfluence()
+    {
+        //make sure it is one that involves the player
+        //and other heuritstics 
+        //return null if there is no option
+        int n = PartialPatternPool.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if(PartialPatternPool[i].GetCurrentEvent().char1.Equals("0") || PartialPatternPool[i].GetCurrentEvent().char2.Equals("0"))
+            {
+                return PartialPatternPool[i];
+            }
+        }
 
+        return null;
+    }
+
+    void Influence()
+    {
+
+        PartialBlock influencePattern = ChoosePatternToInfluence();
+
+        if (influencePattern != null)
+        {
+
+            PatternName pattern = influencePattern.name;
+            Event nextEvent = influencePattern.GetCurrentEvent();
+            string name;
+            string selection;
+
+            //check which one is the zero and get name of other character
+            if (nextEvent.char1.Equals("0"))
+            {
+                name = npcNames[nextEvent.char2];
+                selection = "1";
+            } else
+            {
+                name = npcNames[nextEvent.char1];
+                selection = "2";
+            }
+
+            //get the appropriate text
+            string sText = suggestionTextDictionary[pattern.ToString() + influencePattern.GetCurrentEventNo() + selection];           
+
+            if (sText != null || !sText.Equals(""))
+            {
+                //swap the name into it
+                sText = swapInName(sText, name);
+                suggestionText.text = sText;
+            } else
+            {
+                suggestionText.text = "";
+            }
+            
+
+
+
+
+        }
+
+        //comments
+        {
+            //makes a list of strings that can be used to influence the player
+            //still need to decide when to use them and how and how often etc.
+
+            //vengence
+            // fight.A.B    
+            // escape.B.A
+            // fight.B.A      PlayerA: it's that guy that ran last time, weakling.   PlayerB: he tried to kill you before, you're stronger now go defeat him.
+
+
+
+            //reclaim - kill and steal back pattern
+            //steal_success.A.B
+            //fight.B.A                 //PlayerA:         PlayerB: he stole from you! get him!
+            //kill.B.A                                     PlayerB: go for the kill
+            //loot.B.A                                     PlayerB: take back what is yours
+
+
+            //revenge - killing character that killed friend
+            // kill.A.B
+            // fight.C.A       //PlayerC: he killed your friend         //PlayerA; he looks pissed, they must have been friends
+            // kill.C.A        //PlayerC: give no mercy                       
+            //conditions: character is aggressive. C and A friends
+            //see whether it happens to any characters that are the players friend
+
+            //annoyance
+            //steal_fail.A.B
+            //steal_fail.A.B    PlayerA: we can come back and try again later when he's not looking  PlayerB: who's that guy over there?
+            //fight.B.A         PlayerA: he looks like he wants to start a fight with you now        PlayerB: he keeps trying to steal from you, show him you won't take it.
+
+            //IDEA
+            //leave patterns active for a minute, if they decide not to complete them, scrap them. record how many patterns of each type get completed. and suggest the actions which start those more frequent patterns
+
+        }
+    }
+
+    private string swapInName(string text, string name)
+    {
+        //"cat X is"
+        // 01234567
+        int index = text.IndexOf("X");
+        string newText = text.Substring(0, index) + name + text.Substring(index + 1);
+
+        return newText;
+    }
     public static npcScript GetNPCByID(string IDstring)
     {
         int ID = int.Parse(IDstring);
@@ -578,6 +602,8 @@ public class simulation : MonoBehaviour
         return null;          
     }
 
+
+
     //either 2 characters, 1 character 1 object, 2 characters 1 object. Overloaded function so can do either
     public static void AddToLog(string action, string ent1, string ent2, string ent3)
     {
@@ -595,7 +621,6 @@ public class simulation : MonoBehaviour
         WriteToLog(gameLog);
         //Debug.Log("Check: " + log[log.Count - 1]); 
     }
-
     public static void AddToLog(State action, string ent1, string ent2)
     {
         switch (action)
@@ -640,11 +665,11 @@ public class simulation : MonoBehaviour
         //conditions: character is aggressive. C and A friends
 
         // stealing back item from character that killed and looted from friend
-        List<Event> pat4 = new List<Event>();
-        pat4.Add(new Event("kill", "A", "B", null));
-        pat4.Add(new Event("loot", "A", "B", "AA"));
-        pat4.Add(new Event("steal_success", "C", "A", "AA"));
-        Pattern pattern4 = new(PatternName.REVENGE2, pat4, true);
+        //List<Event> pat4 = new List<Event>();
+        //pat4.Add(new Event("kill", "A", "B", null));
+        //pat4.Add(new Event("loot", "A", "B", "AA"));
+        //pat4.Add(new Event("steal_success", "C", "A", "AA"));
+        //Pattern pattern4 = new(PatternName.REVENGE2, pat4, true);
         //conditions: character not agressive. C and A friends
 
         //annoyance - character failed a steal and kept getting caught, annoys other character
@@ -669,7 +694,7 @@ public class simulation : MonoBehaviour
 }
 
 //stores an individual event, with the parts that make up an event
-class Event
+public class Event
 {
     public string action;
     public string char1;
@@ -688,7 +713,7 @@ class Event
 
 //stores a story pattern, including the events and the nullifying events for a pattern
 //the default character letter used denotes where conditions have to be met of the same character being used etc.
-class Pattern {
+public class Pattern {
 
     public PatternName name;
     List<Event> events;
@@ -722,7 +747,7 @@ class Pattern {
 
 //holds the pattern being followed, where you are up to, which characters, objects end up getting used
 //stick the actual characters being used in the pattern sections so they know which ones to look for
-class PartialBlock
+public class PartialBlock
 {
     Pattern patternTemplate;
     Pattern patternFollow;
@@ -832,9 +857,15 @@ class PartialBlock
         patternFollow = new Pattern(patternTemplate.name, patternFollowEventsList, patternTemplate.conditionFriendCA);
     }
 
+    //the event we want to happen next
     public Event GetCurrentEvent()
     {
         return (patternFollowEventsList[currentEvent]);
+    }
+
+    public int GetCurrentEventNo()
+    {
+        return currentEvent;
     }
 
     public void incrementEvent()
@@ -904,28 +935,8 @@ class PartialBlock
 
 
 //pattern names
-enum PatternName
+public enum PatternName
 {
     REVENGE, VENGENCE, RECLAIM, ANNOYANCE, REVENGE2
 }
 
-public class FightResult {
-
-    public int HP1;
-    public int HP2;
-    public bool escape1;
-    public bool escpae2;
-    public bool die1;
-    public bool dies2;
-   
-
-    public FightResult(int HP1, int HP2, bool escape1, bool escpae2, bool die1, bool dies2)
-    {
-        this.HP1 = HP1;
-        this.HP2 = HP2;
-        this.escape1 = escape1;
-        this.escpae2 = escpae2;
-        this.die1 = die1;
-        this.dies2 = dies2;
-    }
-}

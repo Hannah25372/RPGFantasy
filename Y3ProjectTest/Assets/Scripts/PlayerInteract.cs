@@ -18,7 +18,7 @@ public class PlayerInteract : MonoBehaviour
             {
                 if (!interactable.GetTransform().gameObject.GetComponent<npcScript>().dead)
                 {
-                    player.state = State.FIGHTING;
+                    //player.state = State.FIGHTING;
                     npcScript npc = interactable.GetTransform().gameObject.GetComponent<npcScript>();
                     simulation.AddToLog("fight", "0", npc.IDController.ToString());
                     interactable.Interact("fight");

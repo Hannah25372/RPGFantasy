@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class npcScript : MonoBehaviour, InteractableInterface
 {
@@ -8,6 +9,8 @@ public class npcScript : MonoBehaviour, InteractableInterface
     simulation sim;
 
     public string name;
+
+    public GameObject image;
 
     //bounds of walking
     public int maxX;
@@ -29,6 +32,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
     public float duration;
 
     float deathTimer;
+    float escapeTimer;
 
     //character attributes
     [SerializeField] private int ID;
@@ -135,6 +139,11 @@ public class npcScript : MonoBehaviour, InteractableInterface
             timer(3);
         }
 
+        if (state == State.ESCAPE)
+        {
+            escapeT();
+        }
+
         if (state == State.DEAD || dead)
         {
             state = State.DEAD;
@@ -199,22 +208,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
             //make them stop and look at you.
         }
     }
-
-
-    void give() 
-    { 
-    }
-
-    void pickUp()
-    {
-
-    }
-
-    void drop()
-    {
-
-    }
-
+    
 
     void talk()
     {
@@ -267,22 +261,41 @@ public class npcScript : MonoBehaviour, InteractableInterface
         if (Random.Range(0, 2) == 0 && !dead)
         {
             simulation.AddToLog("escape", ID.ToString(), "0");
-            escape();
+            Escape();
         }
 
 
     }
 
-    public void escape()
+    public void Escape()
     {
         animator.SetBool("isWalking", true);
-        state = State.MOVING;
+        state = State.ESCAPE;
+        animator.speed = 2;
+        speed += 2;
         ps.Stop();
         rotates(150, 210);
         moves();
     }
 
-
+    public void escapeT()
+    {
+        if (escapeTimer < 2f)
+        {
+            escapeTimer += Time.deltaTime;
+            randomMovementInTown();
+        }
+        else
+        {
+            escapeTimer = 0f;
+            animator.speed = 1;
+            speed -= 2;
+            state = State.MOVING;
+            rotates(150, 210);
+            moves();
+        }
+        
+    }
 
 
     void changeTownBounds(Town town)
@@ -395,7 +408,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
                         if (Random.Range(0, 7) == 0)
                             {
                                 simulation.AddToLog("escape", ID.ToString(), "0");
-                                escape();
+                                Escape();
                             }
                         break;
                     case < 12:
@@ -484,7 +497,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
                 if (Random.Range(0, 2) == 0 && !dead)
                 {
                     simulation.AddToLog("escape", ID.ToString(), "0");
-                    escape();
+                    Escape();
                 }
 
                 break;

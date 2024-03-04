@@ -1,0 +1,127 @@
+
+public class FightResult {
+
+    public int HP1;
+    public int HP2;
+    public bool escape1;
+    public bool escpae2;
+    public bool die1;
+    public bool dies2;
+   
+
+    public FightResult(int HP1, int HP2, bool escape1, bool escpae2, bool die1, bool dies2)
+    {
+        this.HP1 = HP1;
+        this.HP2 = HP2;
+        this.escape1 = escape1;
+        this.escpae2 = escpae2;
+        this.die1 = die1;
+        this.dies2 = dies2;
+    }
+}
+
+
+
+    //take in stats for characters. return map of what happens as fight result.
+    //need to return the result of the fight. i.e the HP of both characters, whether one died, whether one escaped.
+    public static FightResult PlayerStartFight(int[] stats)
+    {
+
+        int HP1 = stats[0];
+        int AC1 = stats[1];
+        int ATK1 = stats[2];
+        int HP2 = stats[3];
+        int AC2 = stats[4];
+        int ATK2 = stats[5];
+
+        //repeat until a kill, or an escape.
+        bool killedNPC = false;
+        bool killedPlayer = false;
+        bool escapedNPC = false;
+        bool escapedPlayer = false;
+
+        float duration = 2f;
+        float time = 0f;
+
+        int damage;
+
+        Debug.Log("1");
+
+        while (!killedNPC && !escapedNPC && !killedPlayer && !escapedPlayer)
+        {
+            Debug.Log("2");
+            //attack 1
+            damage = ATK1 * ((100 - AC2) / 100) * (Random.Range(8, 12) / 10);
+            HP2 -= damage;
+            if (HP2 <= 0)
+            {
+                killedNPC = true;
+                Debug.Log("npc was killed");
+
+            }
+
+            Debug.Log("3");
+            //attack 2
+            if (!killedNPC)
+            {
+                Debug.Log("4");
+                damage = ATK1 * ((100 - AC1) / 100) * (Random.Range(8, 12) / 10);
+                HP1 -= damage;
+                if (HP1 <= 0)
+                {
+                    killedPlayer = true;
+                    Debug.Log("player killed");
+                }
+
+                if (!killedPlayer)
+                {
+                    Debug.Log("5");
+                    //escape 1
+                    if (simulation.playerEscape)
+                    {
+                        escapedPlayer = true;
+                        Debug.Log("player escaped");
+                    }
+
+
+                    if (!escapedPlayer)
+                    {
+                        Debug.Log("6");
+                        //escape 2
+                        if (HP2 < Random.Range(1, 100))
+                        {
+                            escapedNPC = true;
+                            Debug.Log("npc escaped");
+                        }
+                    }
+                }
+
+            }
+        }
+
+        //npc.HPController = HP2;
+
+        if (killedNPC)
+        {
+            //simulation.AddToLog("kill", "0", npc.IDController.ToString());
+        }
+        else if (escapedNPC)
+        {
+            //simulation.AddToLog("escape", npc.IDController.ToString(), "0");
+        }
+        else if (escapedPlayer)
+        {
+            //simulation.AddToLog("escape", "0", npc.IDController.ToString());
+        }
+        else if (escapedNPC)
+        {
+            //simulation.AddToLog("escape", npc.IDController.ToString(), "0");
+            //npc.escape();
+
+        }
+
+        return new FightResult(HP1,HP2,escapedPlayer,escapedNPC,killedPlayer,killedNPC);
+    }
+
+
+    #########################################

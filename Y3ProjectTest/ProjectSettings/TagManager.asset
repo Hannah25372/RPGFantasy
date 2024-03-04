@@ -7,6 +7,8 @@ TagManager:
   - Ground
   - NPC
   - Water
+  - CharacterImage
+  - Suggestion
   layers:
   - Default
   - TransparentFX

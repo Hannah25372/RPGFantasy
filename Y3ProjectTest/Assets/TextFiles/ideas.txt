@@ -48,5 +48,33 @@ cannot put npc script in the patterns, because it doesn't work when the player i
 change so it just stores the string ID
 
 
+-----------------------------------
+
+steps:
+
+1. which pattern do I nudge?
+Based on how far through? most recently started? first started? based on completed patterns too? For now, no heuritiscs i will just do the first one in the list.
+
+2. When do I nudge?
+maybe nudge the next move whenever partial pattern is created/ incremented.
+maybe wait a couple of beats or seconds between nudges
+
+3. How?
+side character gives speech
 
 
+
+
+
+NPC talk to player
+friendly: Hello, have a good day!
+Agressive: What, you wanna fight huh?
+Selfish: Stay out of my way
+Loyal: Hi there, have a nice day!
+
+
+
+
+Manual things to change:
+Adding NPCs - add and set them up. Add their names to the dictionary
+Adding patterns - add to the set up. add name to enum. add suggestions text to dictionary
