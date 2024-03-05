@@ -2,15 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class npcScript : MonoBehaviour, InteractableInterface
 {
 
     simulation sim;
 
+    public GameObject talkUI;
+    public TextMeshProUGUI talkText;
+
     public string name;
 
-    public GameObject image;
 
     //bounds of walking
     public int maxX;
@@ -114,7 +117,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
         state = State.MOVING;
         animator.SetBool("isWalking", true);
 
-
+        talkUI.SetActive(false);
         
     }
 
@@ -220,6 +223,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
         {
             time = 0f;
             animator.SetBool("isWalking", true);
+            talkUI.SetActive(false);
             state = State.MOVING;
             rotates(150, 210);
             moves();
@@ -272,7 +276,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
         animator.SetBool("isWalking", true);
         state = State.ESCAPE;
         animator.speed = 2;
-        speed += 2;
+        speed = 4;
         ps.Stop();
         rotates(150, 210);
         moves();
@@ -289,7 +293,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
         {
             escapeTimer = 0f;
             animator.speed = 1;
-            speed -= 2;
+            speed = 2;
             state = State.MOVING;
             rotates(150, 210);
             moves();
@@ -396,6 +400,8 @@ public class npcScript : MonoBehaviour, InteractableInterface
                     case < 3:
                         animator.SetBool("isWalking", false);
                         state = State.TALKING;
+                            talkUI.SetActive(true);
+                            talkText.text = name + ": ";
                         simulation.AddToLog("talk", ID.ToString(), "0");
                         break;
                     case < 8:
@@ -508,6 +514,8 @@ public class npcScript : MonoBehaviour, InteractableInterface
                 NoticeSteal();
                 break;
             case "talk":
+                talkUI.SetActive(true);
+                talkText.text = name + ": ";
                 state = State.TALKING;
                 break;
             default:

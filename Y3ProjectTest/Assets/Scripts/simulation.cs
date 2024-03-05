@@ -18,9 +18,11 @@ public class simulation : MonoBehaviour
     public Dictionary<string, string> npcNames;
     public Dictionary<string, string> suggestionTextDictionary;
 
+    public GameObject influenceUI;
     public TextMeshProUGUI suggestionText;
     public float influenceTimer;
     public bool influenceOn;
+    public float influenceAppearTimer;
 
    
 
@@ -108,7 +110,7 @@ public class simulation : MonoBehaviour
         npcNames.Add("4", "Victor");
 
         influenceTimer = 0f;
-
+        influenceUI.SetActive(false);
 
         SetUpPatterns();
         SetUpInfluenceDictionary();
@@ -125,19 +127,35 @@ public class simulation : MonoBehaviour
         //every frame
         StorySift();
 
+
         if (influenceOn)
         {
 
-            //every 3 seconds
-            if (influenceTimer > 3f)
+            //if nothing has changed on influence after 3 seconds, it will dissapear
+            if (influenceAppearTimer > 3f)
+            {
+                influenceAppearTimer = 0f;
+                influenceUI.SetActive(false);
+
+            }
+            else
+            {
+                influenceAppearTimer += Time.deltaTime;
+            }
+
+            //every 6 seconds call the influencer
+            if (influenceTimer > 6f)
             {
                 influenceTimer = 0f;
                 Influence();
+                
             }
             else
             {
                 influenceTimer += Time.deltaTime;
             }
+
+
 
         } else
         {
@@ -516,11 +534,14 @@ public class simulation : MonoBehaviour
             //get the appropriate text
             string sText = suggestionTextDictionary[pattern.ToString() + influencePattern.GetCurrentEventNo() + selection];           
 
-            if (sText != null || !sText.Equals(""))
+            if (sText != null && !sText.Equals(""))
             {
                 //swap the name into it
                 sText = swapInName(sText, name);
                 suggestionText.text = sText;
+                influenceUI.SetActive(true);
+                influenceAppearTimer = 0f;
+
             } else
             {
                 suggestionText.text = "";

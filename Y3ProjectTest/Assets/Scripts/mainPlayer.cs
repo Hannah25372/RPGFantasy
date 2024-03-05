@@ -10,6 +10,11 @@ public class mainPlayer : MonoBehaviour
     public TextMeshProUGUI ACText;
     public TextMeshProUGUI ATKText;
 
+    public Vector3 move;
+
+    public GameObject influencerNPC;
+    private Animator npcAnimator;
+
     public int HP = 100;
     public int AC = 60;
     public int ATK = 80;
@@ -25,12 +30,23 @@ public class mainPlayer : MonoBehaviour
         ACText.text = AC.ToString();
         ATKText.text = ATK.ToString();
 
+        npcAnimator = influencerNPC.GetComponent<Animator>();
+
         //state = State.IDLE;
     }
 
     // Update is called once per frame
     void Update()
     {
+
+        move = gameObject.GetComponent<CharacterController>().velocity;
+        if (move.x == 0 && move.y == 0 && move.z == 0)
+        {
+            npcAnimator.SetBool("isWalking", false);
+        } else
+        {
+            npcAnimator.SetBool("isWalking", true);
+        }
 
     }
 
