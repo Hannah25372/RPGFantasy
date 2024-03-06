@@ -11,8 +11,10 @@ public class npcScript : MonoBehaviour, InteractableInterface
 
     public GameObject talkUI;
     public TextMeshProUGUI talkText;
+    private string[] dialogueNice;
+    private string[] dialogueMean;
 
-    public string name;
+    public string characterName;
 
 
     //bounds of walking
@@ -34,7 +36,6 @@ public class npcScript : MonoBehaviour, InteractableInterface
     public float time;
     public float duration;
 
-    float deathTimer;
     float escapeTimer;
 
     //character attributes
@@ -51,6 +52,8 @@ public class npcScript : MonoBehaviour, InteractableInterface
     private npcScript lastInteractedPlayer;
 
     public bool dead;
+
+   
 
     
     public int HPController { get => HP; set
@@ -105,12 +108,11 @@ public class npcScript : MonoBehaviour, InteractableInterface
         //traits = new List<Traits>();
         //relationships = new Relationship[8];
 
-        changeTownBounds(Town.Village1);
+        changeTownBounds(currentTown);
         speed = 2;
         rotateDirection = 180f;
 
         duration = 3f;
-        deathTimer = 0f;
 
         dead = false;
 
@@ -118,7 +120,9 @@ public class npcScript : MonoBehaviour, InteractableInterface
         animator.SetBool("isWalking", true);
 
         talkUI.SetActive(false);
-        
+        dialogueNice = new string[4] {"Hello, have a good day!", "Hi there, have a nice day!", "I like your armour.", "That's a cool sword."};
+        dialogueMean = new string[4] { "Well what do we have here?", "Watch yourself.", "Stay out of my way.", "What, you wanna fight huh?" };
+
     }
 
     // Update is called once per frame
@@ -145,6 +149,11 @@ public class npcScript : MonoBehaviour, InteractableInterface
         if (state == State.ESCAPE)
         {
             escapeT();
+        }
+
+        if (state == State.GIVE)
+        {
+            timer(2);
         }
 
         if (state == State.DEAD || dead)
@@ -191,7 +200,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
         }      
     }
 
-    //the other is the one who steals
+    //the player steals from this npc
     void NoticeSteal()
     {
         int rand = Random.Range(1, 3); //either 1 or 2
@@ -200,6 +209,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
             simulation.AddToLog("steal_success", "0", ID.ToString(), "obj1");
             state = State.MOVING;
             animator.SetBool("isWalking", true);
+            GameObject.FindGameObjectWithTag("Player").GetComponent<mainPlayer>().AddMoney(15);
             //swap the object in question
         }
         else //fail
@@ -301,6 +311,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
         
     }
 
+   
 
     void changeTownBounds(Town town)
     {
@@ -401,7 +412,16 @@ public class npcScript : MonoBehaviour, InteractableInterface
                         animator.SetBool("isWalking", false);
                         state = State.TALKING;
                             talkUI.SetActive(true);
-                            talkText.text = name + ": ";
+                            string extraText;
+                            if (traits.Contains(Traits.Aggressive))
+                            {
+                                extraText = dialogueMean[Random.Range(0, 4)];
+                            }
+                            else
+                            {
+                                extraText = dialogueNice[Random.Range(0, 4)];
+                            }
+                            talkText.text = characterName + ": " + extraText;
                         simulation.AddToLog("talk", ID.ToString(), "0");
                         break;
                     case < 8:
@@ -424,10 +444,13 @@ public class npcScript : MonoBehaviour, InteractableInterface
                         } else
                         {
                             simulation.AddToLog("steal_success", ID.ToString(), "0");
+                            collision.gameObject.GetComponent<mainPlayer>().AddMoney(-15);
                         }
                         break;
                     case < 15:
                         simulation.AddToLog("give", ID.ToString(), "0");
+                        state = State.GIVE;
+                        collision.gameObject.GetComponent<mainPlayer>().AddMoney(10);
                         break;
 
                 }
@@ -508,14 +531,24 @@ public class npcScript : MonoBehaviour, InteractableInterface
 
                 break;
             case "give":
-                state = State.RECIEVE;
+                state = State.GIVE;
+                GameObject.FindGameObjectWithTag("Player").GetComponent<mainPlayer>().AddMoney(-10);
+                //state = State.RECIEVE;
                 break;
             case "steal":
                 NoticeSteal();
                 break;
             case "talk":
                 talkUI.SetActive(true);
-                talkText.text = name + ": ";
+                string extraText;
+                if (traits.Contains(Traits.Aggressive))
+                {
+                    extraText = dialogueMean[Random.Range(0,4)];
+                } else
+                {
+                    extraText = dialogueNice[Random.Range(0, 4)];
+                }
+                talkText.text = characterName + ": " + extraText;
                 state = State.TALKING;
                 break;
             default:
@@ -530,7 +563,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
 
     public string GetInteractText()
     {
-        return name;
+        return characterName;
     }
 }
 

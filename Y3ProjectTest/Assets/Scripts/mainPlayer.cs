@@ -9,6 +9,7 @@ public class mainPlayer : MonoBehaviour
     public TextMeshProUGUI HPText;
     public TextMeshProUGUI ACText;
     public TextMeshProUGUI ATKText;
+    public TextMeshProUGUI moneyText;
 
     public Vector3 move;
 
@@ -18,6 +19,8 @@ public class mainPlayer : MonoBehaviour
     public int HP = 100;
     public int AC = 60;
     public int ATK = 80;
+
+    public int money = 100;
 
     //public State state;
 
@@ -77,6 +80,15 @@ public class mainPlayer : MonoBehaviour
         ATKText.text = ATK.ToString();
 
     }
+
+    public void AddMoney(int change)
+    { 
+        money += change;
+        if (money < 0) money = 0;
+        moneyText.text = money.ToString();
+    }
+
+    
 
 
     public void CursorOn()

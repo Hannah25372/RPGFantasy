@@ -102,18 +102,14 @@ public class simulation : MonoBehaviour
         patterns = new List<Pattern>();
         deadNPCs = new List<string>();
         completedPatterns = new List<PartialBlock>();
-        npcNames = new Dictionary<string, string>();
-
-        npcNames.Add("1", "Rowan");
-        npcNames.Add("2", "Lukas");
-        npcNames.Add("3", "Gabriel");
-        npcNames.Add("4", "Victor");
+        
 
         influenceTimer = 0f;
         influenceUI.SetActive(false);
 
         SetUpPatterns();
         SetUpInfluenceDictionary();
+        SetUpNames();
 
         ClearLogText();
         ClearPartialPoolText();
@@ -712,6 +708,33 @@ public class simulation : MonoBehaviour
 
     }
 
+    private void SetUpNames()
+    {
+        npcNames = new Dictionary<string, string>();
+
+        npcNames.Add("1", "Rowan");
+        npcNames.Add("2", "Lukas");
+        npcNames.Add("3", "Gabriel");
+        npcNames.Add("4", "Victor");
+        npcNames.Add("5", "Ian");
+        npcNames.Add("6", "Akira");
+        npcNames.Add("7", "Theo");
+        npcNames.Add("8", "Luca");
+        npcNames.Add("9", "Jack");
+        npcNames.Add("10", "William");
+        npcNames.Add("11", "Samuel");
+        npcNames.Add("12", "Ryan");
+        npcNames.Add("13", "Aiden");
+        npcNames.Add("14", "Daniel");
+        npcNames.Add("15", "Tobias");
+        npcNames.Add("16", "Eden");
+        npcNames.Add("17", "Thomas");
+        npcNames.Add("18", "Jakob");
+        npcNames.Add("19", "Keith");
+        npcNames.Add("20", "Oscar");
+
+
+    }
 }
 
 //stores an individual event, with the parts that make up an event

@@ -1,1 +1,55 @@
 PARTIAL POOL
+RECLAIM
+ steal_success 16 13
+ fight 13 16 <-- looking for next
+ kill 13 16
+ loot 13 16
+
+ANNOYANCE
+ steal_fail 16 13
+ steal_fail 16 13 <-- looking for next
+ steal_fail 16 13
+
+RECLAIM
+ steal_success 20 17
+ fight 17 20 <-- looking for next
+ kill 17 20
+ loot 17 20
+
+RECLAIM
+ steal_success 8 5
+ fight 5 8 <-- looking for next
+ kill 5 8
+ loot 5 8
+
+ANNOYANCE
+ steal_fail 20 17
+ steal_fail 20 17 <-- looking for next
+ steal_fail 20 17
+
+RECLAIM
+ steal_success 12 10
+ fight 10 12 <-- looking for next
+ kill 10 12
+ loot 10 12
+
+ANNOYANCE
+ steal_fail 12 10
+ steal_fail 12 10
+ steal_fail 12 10 <-- looking for next
+
+ANNOYANCE
+ steal_fail 12 9
+ steal_fail 12 9
+ steal_fail 12 9 <-- looking for next
+
+VENGENCE
+ fight 0 20
+ escape 20 0
+ fight 20 0 <-- looking for next
+
+VENGENCE
+ fight 0 18
+ escape 18 0
+ fight 18 0 <-- looking for next
+

@@ -54,6 +54,7 @@ steps:
 
 1. which pattern do I nudge?
 Based on how far through? most recently started? first started? based on completed patterns too? For now, no heuritiscs i will just do the first one in the list.
+also based on the location the player is in? 
 
 2. When do I nudge?
 maybe nudge the next move whenever partial pattern is created/ incremented.
@@ -74,7 +75,14 @@ Loyal: Hi there, have a nice day!
 
 
 
-
+---------------
 Manual things to change:
-Adding NPCs - add and set them up. Add their names to the dictionary
+Adding NPCs - 
+add and set them up with components. 
+fill out stats in npcScript. 
+give them fight particles. 
+Add their names to the dictionary. 
+add them to the friends lists
+give them npc tag
+
 Adding patterns - add to the set up. add name to enum. add suggestions text to dictionary
