@@ -1,31 +1,19 @@
 PARTIAL POOL
+FRIENDS
+ talk 2 4
+ talk 4 2
+ give 4 2 <-- looking for next
+
 RECLAIM
- steal_success 16 13
- fight 13 16 <-- looking for next
- kill 13 16
- loot 13 16
+ steal_success 8 6
+ fight 6 8 <-- looking for next
+ kill 6 8
+ loot 6 8
 
 ANNOYANCE
- steal_fail 16 13
- steal_fail 16 13 <-- looking for next
- steal_fail 16 13
-
-RECLAIM
- steal_success 20 17
- fight 17 20 <-- looking for next
- kill 17 20
- loot 17 20
-
-RECLAIM
- steal_success 8 5
- fight 5 8 <-- looking for next
- kill 5 8
- loot 5 8
-
-ANNOYANCE
- steal_fail 20 17
- steal_fail 20 17 <-- looking for next
- steal_fail 20 17
+ steal_fail 12 10
+ steal_fail 12 10
+ fight 10 12 <-- looking for next
 
 RECLAIM
  steal_success 12 10
@@ -33,23 +21,164 @@ RECLAIM
  kill 10 12
  loot 10 12
 
-ANNOYANCE
- steal_fail 12 10
- steal_fail 12 10
- steal_fail 12 10 <-- looking for next
+FRIENDS
+ talk 15 13
+ talk 13 15
+ give 13 15 <-- looking for next
+
+VENGENCE
+ fight 3 4
+ escape 4 3 <-- looking for next
+ fight 4 3
+
+VENGENCE
+ fight 4 3
+ escape 3 4 <-- looking for next
+ fight 3 4
+
+FRIENDS
+ talk 13 15
+ talk 15 13
+ give 15 13 <-- looking for next
+
+VENGENCE
+ fight 0 2
+ escape 2 0
+ fight 2 0 <-- looking for next
+
+FRIENDS
+ talk 11 10
+ talk 10 11
+ give 10 11 <-- looking for next
+
+RECLAIM
+ steal_success 20 19
+ fight 19 20 <-- looking for next
+ kill 19 20
+ loot 19 20
+
+FRIENDS
+ talk 17 18
+ talk 18 17
+ give 18 17 <-- looking for next
+
+FRIENDS
+ talk 3 0
+ talk 0 3 <-- looking for next
+ give 0 3
+
+RECLAIM
+ steal_success 8 7
+ fight 7 8 <-- looking for next
+ kill 7 8
+ loot 7 8
+
+RECLAIM
+ steal_success 1 0
+ fight 0 1
+ kill 0 1 <-- looking for next
+ loot 0 1
+
+FRIENDS
+ talk 14 15
+ talk 15 14
+ give 15 14 <-- looking for next
+
+FRIENDS
+ talk 15 14
+ talk 14 15 <-- looking for next
+ give 14 15
+
+VENGENCE
+ fight 4 0
+ escape 0 4 <-- looking for next
+ fight 0 4
+
+FRIENDS
+ talk 17 19
+ talk 19 17
+ give 19 17 <-- looking for next
+
+RECLAIM
+ steal_success 2 0
+ fight 0 2
+ kill 0 2 <-- looking for next
+ loot 0 2
+
+VENGENCE
+ fight 2 0
+ escape 0 2 <-- looking for next
+ fight 0 2
+
+REVENGE
+ kill 2 1
+ fight  2 <-- looking for next
+ kill  2
 
 ANNOYANCE
  steal_fail 12 9
  steal_fail 12 9
- steal_fail 12 9 <-- looking for next
+ fight 9 12 <-- looking for next
 
-VENGENCE
- fight 0 20
- escape 20 0
- fight 20 0 <-- looking for next
+ANNOYANCE
+ steal_fail 20 19
+ steal_fail 20 19 <-- looking for next
+ fight 19 20
 
-VENGENCE
- fight 0 18
- escape 18 0
- fight 18 0 <-- looking for next
+FRIENDS
+ talk 10 9
+ talk 9 10
+ give 9 10 <-- looking for next
+
+FRIENDS
+ talk 2 0
+ talk 0 2 <-- looking for next
+ give 0 2
+
+RECLAIM
+ steal_success 12 9
+ fight 9 12 <-- looking for next
+ kill 9 12
+ loot 9 12
+
+FRIENDS
+ talk 19 17
+ talk 17 19 <-- looking for next
+ give 17 19
+
+FRIENDS
+ talk 18 19
+ talk 19 18
+ give 19 18 <-- looking for next
+
+ANNOYANCE
+ steal_fail 4 0
+ steal_fail 4 0 <-- looking for next
+ fight 0 4
+
+FRIENDS
+ talk 19 18
+ talk 18 19
+ give 18 19 <-- looking for next
+
+FRIENDS
+ talk 2 3
+ talk 3 2
+ give 3 2 <-- looking for next
+
+FRIENDS
+ talk 3 2
+ talk 2 3
+ give 2 3 <-- looking for next
+
+ANNOYANCE
+ steal_fail 20 17
+ steal_fail 20 17
+ fight 17 20 <-- looking for next
+
+RECLAIM
+ steal_success 20 17
+ fight 17 20 <-- looking for next
+ kill 17 20
+ loot 17 20
 

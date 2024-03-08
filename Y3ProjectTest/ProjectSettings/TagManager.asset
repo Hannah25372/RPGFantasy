@@ -6,9 +6,12 @@ TagManager:
   tags:
   - Ground
   - NPC
-  - Water
-  - CharacterImage
   - Suggestion
+  - LakeTown
+  - MountainKingdom
+  - DesertKingdom
+  - Village1
+  - Village2
   layers:
   - Default
   - TransparentFX

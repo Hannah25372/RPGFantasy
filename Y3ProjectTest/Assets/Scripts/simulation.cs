@@ -16,13 +16,17 @@ public class simulation : MonoBehaviour
     private int partialsAdded = 0;
     public List<PartialBlock> completedPatterns;
     public Dictionary<string, string> npcNames;
+
     public Dictionary<string, string> suggestionTextDictionary;
+    private string[] randomText;
 
     public GameObject influenceUI;
     public TextMeshProUGUI suggestionText;
     public float influenceTimer;
     public bool influenceOn;
     public float influenceAppearTimer;
+    private int nicePatternCount = 0;
+    private int meanPatternCount = 0;
 
    
 
@@ -143,7 +147,7 @@ public class simulation : MonoBehaviour
             if (influenceTimer > 6f)
             {
                 influenceTimer = 0f;
-                Influence();
+                Influence2();
                 
             }
             else
@@ -247,6 +251,8 @@ public class simulation : MonoBehaviour
         state[1] = state2;
         return state;
     }
+
+
 
 
     void StorySift()
@@ -423,6 +429,22 @@ public class simulation : MonoBehaviour
             }
 
 
+            //ADD COMPLETE PATTERNS TO BEHAVIOUR COUNT
+            foreach (PartialBlock block in PartialPatternPool)
+            {
+                if (block.patternComplete())
+                {
+                    if (block.name == PatternName.FRIENDS)
+                    {
+                        nicePatternCount++;
+                    } else
+                    {
+                        meanPatternCount++;
+                    }
+                }
+            }
+
+
             //DELETE FROM POOL
             //anything to remove from partial pool? pattern taking too long or a character dies or pattern complete
             List<PartialBlock> blocksToDelete = new List<PartialBlock>();
@@ -462,6 +484,8 @@ public class simulation : MonoBehaviour
     }
 
     
+
+
     void SetUpInfluenceDictionary()
     {
         suggestionTextDictionary = new Dictionary<string, string>();
@@ -483,26 +507,204 @@ public class simulation : MonoBehaviour
         suggestionTextDictionary.Add("ANNOYANCE21", "We can try stealing from X again when he's not looking.");
         suggestionTextDictionary.Add("ANNOYANCE22", "X has tried stealing from you twice now! You gonna take this?");
 
+        suggestionTextDictionary.Add("FRIENDS11", "X was really friendly I wanna get to know that guy better.");
+        suggestionTextDictionary.Add("FRIENDS12", "X was really friendly I wanna get to know that guy better.");
+        suggestionTextDictionary.Add("FRIENDS21", "I wanna be friends with X.");
+        suggestionTextDictionary.Add("FRIENDS22", "What's X carrying?");
 
 
+
+        randomText = new string[10];
+        randomText[0] = "That guy over there keeps staring at us.";
+        randomText[1] = "This town feels strange...";
+        randomText[2] = "They look friendly, I like them.";
+        randomText[3] = "Hmmm we're running low on funds.";
+        randomText[4] = "Think we can convince someone to aid us?";
+        randomText[5] = "Who was that?";
+        randomText[6] = "I wanna fight. If someone just looks at me funny...";
+        randomText[7] = "Wait, go back there.";
+        randomText[8] = "Let's move on there's nothing here.";
+        randomText[9] = "I want to explore more places.";
     }
-    PartialBlock ChoosePatternToInfluence()
+    
+    
+    
+
+    List<PartialBlock> GetPlayerPatterns(List<PartialBlock> pool)
     {
-        //make sure it is one that involves the player
-        //and other heuritstics 
-        //return null if there is no option
-        int n = PartialPatternPool.Count;
+        List<PartialBlock> potentialBlocks = new List<PartialBlock>();
+        //gets patterns that player is involved in. can only influence these.
+        int n = pool.Count;
         for (int i = 0; i < n; i++)
         {
-            if(PartialPatternPool[i].GetCurrentEvent().char1.Equals("0") || PartialPatternPool[i].GetCurrentEvent().char2.Equals("0"))
+            if (pool[i].GetCurrentEvent().char1.Equals("0") || pool[i].GetCurrentEvent().char2.Equals("0"))
             {
-                return PartialPatternPool[i];
+                potentialBlocks.Add(pool[i]);
+            }
+        }
+        return potentialBlocks;
+    }
+    List<PartialBlock> GetSameTownPatterns(List<PartialBlock> pool)
+    {
+        List<PartialBlock> potentialBlocks = new List<PartialBlock>();
+        int n = pool.Count;
+        for (int i = 0; i < n; i++)
+        {
+            npcScript otherNPC;
+            if (pool[i].GetCurrentEvent().char1.Equals("0"))
+            {
+                otherNPC = GetNPCByID(pool[i].GetCurrentEvent().char2);
+            }
+            else
+            {
+                otherNPC = GetNPCByID(pool[i].GetCurrentEvent().char1);
+            }
+            if (GameObject.FindGameObjectWithTag("Player").GetComponent<mainPlayer>().currentTown == otherNPC.TownController)
+            {
+                potentialBlocks.Add(pool[i]);
+            }
+        }
+        return potentialBlocks;
+    }
+    //chooses from a list of potential patterns that work based on the players behaviour before
+    PartialBlock ChooseFavouredPattern(List<PartialBlock> pool)
+    {
+        //go through completed pool and decide which pattern player favours
+        int n = pool.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if (nicePatternCount > meanPatternCount)
+            {
+                if (pool[i].name == PatternName.FRIENDS)
+                {
+                    return pool[i];
+                }
+            }
+            else
+            {
+                if (pool[i].name != PatternName.FRIENDS)
+                {
+                    return pool[i];
+                }
             }
         }
 
-        return null;
+       
+       return pool[0];
+        
+    }
+    string GetSuggestedText(PartialBlock pattern)
+    {
+            PatternName patName = pattern.name;
+            Event nextEvent = pattern.GetCurrentEvent();
+            string name;
+            string selection;
+
+            //check which one is the zero and get name of other character
+            if (nextEvent.char1.Equals("0"))
+            {
+                name = npcNames[nextEvent.char2];
+                selection = "1";
+            }
+            else
+            {
+                name = npcNames[nextEvent.char1];
+                selection = "2";
+            }
+
+            //get the appropriate text
+            string sText = suggestionTextDictionary[patName.ToString() + pattern.GetCurrentEventNo() + selection];
+
+            if (sText != null && !sText.Equals(""))
+            {
+                //swap the name into it
+                sText = swapInName(sText, name);
+                //suggestionText.text = sText;
+                //influenceUI.SetActive(true);
+                //influenceAppearTimer = 0f;
+
+            }
+        //else
+        //{
+        //    //suggestionText.text = "";
+        //}
+        return sText;
+    }
+    void Influence2()
+    {
+
+        //these will be empty lists if there is none
+        List<PartialBlock> player0Blocks = GetPlayerPatterns(PartialPatternPool);
+        List<PartialBlock> sameTownBlocks = GetSameTownPatterns(player0Blocks);
+        PartialBlock influencePattern;
+        string suggestedText = null;
+       
+        if (player0Blocks.Count == 0)
+        {
+            //player involved in none
+            //random text
+            suggestedText = randomText[Random.Range(0,10)];
+
+        } else if (sameTownBlocks.Count == 0)
+        {
+            // none are in the same town, but there are player 0 patterns
+            influencePattern = ChooseFavouredPattern(player0Blocks);
+
+            //could tell them to move towns, maybe to the town of the chosen block??
+            suggestedText = "This town is kind of boring";
+
+        } else
+        {
+            //there are player 0 patterns in same town
+            influencePattern = ChooseFavouredPattern(sameTownBlocks);
+            suggestedText = GetSuggestedText(influencePattern);
+        }
+
+        //add some randomness to the text when there are patterns. 25% chance of it being random text anyway.
+        if (Random.Range(0, 4) == 0)
+        {
+            suggestedText = randomText[Random.Range(0, 10)];
+        }
+
+        //put text up
+        if (suggestedText != null && !suggestedText.Equals(""))
+        {
+            suggestionText.text = suggestedText;
+            influenceUI.SetActive(true);
+            influenceAppearTimer = 0f;
+        }
+
+
     }
 
+
+
+    PartialBlock ChoosePatternToInfluence()
+    {
+        //make sure it is one that involves the player
+        //make sure npc in same town
+        //choose a pattern that has been completed often by the player before
+        //choose NPCs that player interacts with more often
+        //and other heuritstics 
+        //return null if there is no option
+
+        //model the players behaviour. who their favourite NPCs are and what their favourote patterns are. encourage those more.
+        //also give random statements for the influencer to say as well
+
+        //also want the reason for none. if it's because they aren't in the town, want it to return this town is boring.
+        //if there are no live patterns for player, just suggest an action.
+
+
+        int n = PartialPatternPool.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if (PartialPatternPool[i].GetCurrentEvent().char1.Equals("0") || PartialPatternPool[i].GetCurrentEvent().char2.Equals("0"))
+            {
+                return (PartialPatternPool[i]);
+            }
+        }
+        return null;
+    }
     void Influence()
     {
 
@@ -554,18 +756,7 @@ public class simulation : MonoBehaviour
             //makes a list of strings that can be used to influence the player
             //still need to decide when to use them and how and how often etc.
 
-            //vengence
-            // fight.A.B    
-            // escape.B.A
-            // fight.B.A      PlayerA: it's that guy that ran last time, weakling.   PlayerB: he tried to kill you before, you're stronger now go defeat him.
-
-
-
-            //reclaim - kill and steal back pattern
-            //steal_success.A.B
-            //fight.B.A                 //PlayerA:         PlayerB: he stole from you! get him!
-            //kill.B.A                                     PlayerB: go for the kill
-            //loot.B.A                                     PlayerB: take back what is yours
+           
 
 
             //revenge - killing character that killed friend
@@ -575,16 +766,14 @@ public class simulation : MonoBehaviour
             //conditions: character is aggressive. C and A friends
             //see whether it happens to any characters that are the players friend
 
-            //annoyance
-            //steal_fail.A.B
-            //steal_fail.A.B    PlayerA: we can come back and try again later when he's not looking  PlayerB: who's that guy over there?
-            //fight.B.A         PlayerA: he looks like he wants to start a fight with you now        PlayerB: he keeps trying to steal from you, show him you won't take it.
-
+            
             //IDEA
             //leave patterns active for a minute, if they decide not to complete them, scrap them. record how many patterns of each type get completed. and suggest the actions which start those more frequent patterns
 
         }
     }
+
+
 
     private string swapInName(string text, string name)
     {
@@ -595,6 +784,9 @@ public class simulation : MonoBehaviour
 
         return newText;
     }
+    
+    
+    
     public static npcScript GetNPCByID(string IDstring)
     {
         int ID = int.Parse(IDstring);
@@ -610,10 +802,11 @@ public class simulation : MonoBehaviour
             //Debug.Log("ID searching: " + ID.ToString() + ". NPC: " + npc.GetID().ToString());
             if (npc.GetID() == ID)
             {
-                if (!npc.dead)
-                {
-                    return npc;
-                }
+                return npc;
+                //if (!npc.dead)
+                //{
+                //    return npc;
+                //}
             }
         }
         return null;          
@@ -693,17 +886,23 @@ public class simulation : MonoBehaviour
         List<Event> pat5 = new List<Event>();
         pat5.Add(new Event("steal_fail", "A", "B", null));
         pat5.Add(new Event("steal_fail", "A", "B", null));
-        pat5.Add(new Event("steal_fail", "A", "B", null));  //maybe you should try stealing again later
-        //pat5.Add(new Event("fight", "B", "A", null));  //he keeps stealing from you, he won't stop unless you stop him.
+        //pat5.Add(new Event("steal_fail", "A", "B", null));  //maybe you should try stealing again later
+        pat5.Add(new Event("fight", "B", "A", null));  //he keeps stealing from you, he won't stop unless you stop him.
         Pattern pattern5 = new(PatternName.ANNOYANCE, pat5, false);
 
-        
+        //friends
+        List<Event> pat6 = new List<Event>();
+        pat6.Add(new Event("talk", "A", "B", null));
+        pat6.Add(new Event("talk", "B", "A", null));
+        pat6.Add(new Event("give", "B", "A", null));
+        Pattern pattern6 = new(PatternName.FRIENDS, pat6, true);
 
         patterns.Add(pattern1);
         patterns.Add(pattern2);
         patterns.Add(pattern3);
         //patterns.Add(pattern4);
         patterns.Add(pattern5);
+        patterns.Add(pattern6);
 
 
     }
@@ -981,6 +1180,57 @@ public class PartialBlock
 //pattern names
 public enum PatternName
 {
-    REVENGE, VENGENCE, RECLAIM, ANNOYANCE, REVENGE2
+    REVENGE, VENGENCE, RECLAIM, ANNOYANCE, REVENGE2, FRIENDS
 }
 
+
+public class PlayerBehaviourModel {
+
+    int annoyanceCount;
+    int friendsCount;
+    int reclaimCount;
+    int revengeCount;
+    int vengenceCount;
+
+    int[] patternCounts = new int[5];
+
+    public PlayerBehaviourModel()
+    {
+        patternCounts[0] = 0;
+        patternCounts[1] = 0;
+        patternCounts[2] = 0;
+        patternCounts[3] = 0;
+        patternCounts[4] = 0;
+
+    }
+
+    public void UpdateCounts(PartialBlock completed)
+    {
+            switch (completed.name)
+            {
+                case PatternName.ANNOYANCE:
+                    annoyanceCount++;
+                    patternCounts[0]++;
+                    break;
+                case PatternName.FRIENDS:
+                    friendsCount++;
+                    patternCounts[1]++;
+                    break;
+                case PatternName.RECLAIM:
+                    reclaimCount++;
+                    patternCounts[2]++;
+                    break;
+                case PatternName.REVENGE:
+                    revengeCount++;
+                    patternCounts[3]++;
+                    break;
+                case PatternName.VENGENCE:
+                    vengenceCount++;
+                    patternCounts[4]++;
+                    break;
+            }
+        
+    }
+
+   
+}

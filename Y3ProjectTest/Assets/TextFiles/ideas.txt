@@ -85,4 +85,4 @@ Add their names to the dictionary.
 add them to the friends lists
 give them npc tag
 
-Adding patterns - add to the set up. add name to enum. add suggestions text to dictionary
+Adding patterns - add to the set up. add name to enum. add suggestions text to dictionary. add to playerbehaviour model

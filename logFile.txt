@@ -47,3 +47,14 @@ doesn't make anything else more likely, just suggests things to you, so looks fo
 
 
 
+
+influence heuristics ideas
+choose a pattern where the other character in the pattern is in the same location as the player.
+if there are none, could suggest to the player that "this town is so boring".
+the influence man could also say other random things so it's more like he talks to you rather than tells you what to do. could make it more suggestive as well rather than direct.
+look at past patterns completeded with user involved. if they are mostly nice, suggest influencing nice ones. if mostly fighting, suggest influcing fighting ones. 
+
+
+
+
+

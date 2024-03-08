@@ -1,1 +1,6 @@
 COMPLETED PATTERNS
+VENGENCE
+ fight 0 1
+ escape 1 0
+ fight 1 0
+

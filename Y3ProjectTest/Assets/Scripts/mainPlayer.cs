@@ -22,6 +22,8 @@ public class mainPlayer : MonoBehaviour
 
     public int money = 100;
 
+    public Town currentTown;
+
     //public State state;
 
     // Start is called before the first frame update
@@ -101,6 +103,29 @@ public class mainPlayer : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        switch (other.gameObject.tag)
+        {
+            case "Village1":
+                currentTown = Town.Village1;
+                break;
+            case "Village2":
+                currentTown = Town.Village2;
+                break;
+            case "LakeTown":
+                currentTown = Town.Lake;
+                break;
+            case "MountainKingdom":
+                currentTown = Town.Mountain;
+                break;
+            case "DesertKingdom":
+                currentTown = Town.Dessert;
+                break;
+
+        }
     }
 
 }
