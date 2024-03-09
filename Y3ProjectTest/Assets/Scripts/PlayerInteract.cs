@@ -7,6 +7,7 @@ public class PlayerInteract : MonoBehaviour
 
     public mainPlayer player;
 
+
     //Checks if there is something to interact with
     public void Update()
     {
@@ -38,6 +39,7 @@ public class PlayerInteract : MonoBehaviour
                 {
                     interactable.Interact("give");
                     simulation.AddToLog("give", "0", interactable.GetTransform().gameObject.GetComponent<npcScript>().IDController.ToString());
+                    
                 }
             }
         }

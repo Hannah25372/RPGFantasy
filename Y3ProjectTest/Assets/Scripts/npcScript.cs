@@ -48,6 +48,8 @@ public class npcScript : MonoBehaviour, InteractableInterface
     [SerializeField] private Relationship[] relationships;
 
     private ParticleSystem ps;
+    private ParticleSystem psGive;
+    private ParticleSystem psSteal;
 
     private npcScript lastInteractedPlayer;
 
@@ -105,6 +107,8 @@ public class npcScript : MonoBehaviour, InteractableInterface
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
         ps = gameObject.transform.Find("fightParticles").GetComponent<ParticleSystem>();
+        psGive = gameObject.transform.Find("giveParticles").GetComponent<ParticleSystem>();
+        psSteal = gameObject.transform.Find("stealParticles").GetComponent<ParticleSystem>();
         //traits = new List<Traits>();
         //relationships = new Relationship[8];
 
@@ -188,13 +192,13 @@ public class npcScript : MonoBehaviour, InteractableInterface
         int rand = Random.Range(1,3); //either 1 or 2
         if (rand == 1) //success
         {
-            simulation.AddToLog("steal_success", otherNpc.IDController.ToString(), ID.ToString(), "obj1");
+            simulation.AddToLog("steal_success", otherNpc.IDController.ToString(), ID.ToString());
             state = State.MOVING;
             animator.SetBool("isWalking", true);
             //swap the object in question
         } else //fail
         {
-            simulation.AddToLog("steal_fail", otherNpc.IDController.ToString(), ID.ToString(), "obj1");
+            simulation.AddToLog("steal_fail", otherNpc.IDController.ToString(), ID.ToString());
             state = State.MOVING;
             animator.SetBool("isWalking", true);
         }      
@@ -206,15 +210,16 @@ public class npcScript : MonoBehaviour, InteractableInterface
         int rand = Random.Range(1, 3); //either 1 or 2
         if (rand == 1) //success
         {
-            simulation.AddToLog("steal_success", "0", ID.ToString(), "obj1");
+            simulation.AddToLog("steal_success", "0", ID.ToString());
             state = State.MOVING;
             animator.SetBool("isWalking", true);
             GameObject.FindGameObjectWithTag("Player").GetComponent<mainPlayer>().AddMoney(15);
+            GameObject.FindGameObjectWithTag("Player").transform.Find("stealParticles").GetComponent<ParticleSystem>().Play();
             //swap the object in question
         }
         else //fail
         {
-            simulation.AddToLog("steal_fail", "0", ID.ToString(), "obj1");
+            simulation.AddToLog("steal_fail", "0", ID.ToString());
             timer(2);
             state = State.MOVING;
             animator.SetBool("isWalking", true);
@@ -408,6 +413,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
 
                 switch (Random.Range(0, 15))
                 {
+                    //talk
                     case < 3:
                         animator.SetBool("isWalking", false);
                         state = State.TALKING;
@@ -422,8 +428,9 @@ public class npcScript : MonoBehaviour, InteractableInterface
                                 extraText = dialogueNice[Random.Range(0, 4)];
                             }
                             talkText.text = characterName + ": " + extraText;
-                        simulation.AddToLog("talk", ID.ToString(), "0");
-                        break;
+                            simulation.AddToLog("talk", ID.ToString(), "0");
+                            break;
+                    //fight
                     case < 8:
                         ps.Play();
                         animator.SetBool("isWalking", false);
@@ -437,6 +444,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
                                 Escape();
                             }
                         break;
+                    //steal
                     case < 12:
                         if (Random.Range(0, 2) == 1)
                         {
@@ -445,12 +453,15 @@ public class npcScript : MonoBehaviour, InteractableInterface
                         {
                             simulation.AddToLog("steal_success", ID.ToString(), "0");
                             collision.gameObject.GetComponent<mainPlayer>().AddMoney(-15);
+                            psSteal.Play();
                         }
                         break;
+                    //give
                     case < 15:
                         simulation.AddToLog("give", ID.ToString(), "0");
                         state = State.GIVE;
                         collision.gameObject.GetComponent<mainPlayer>().AddMoney(10);
+                        psGive.Play();
                         break;
 
                 }
@@ -461,7 +472,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
                 lastInteractedPlayer = otherNPC;
                 int otherID = otherNPC.IDController;
 
-                Debug.Log(ID + " crashed into NPC " + otherID);
+                //Debug.Log(ID + " crashed into NPC " + otherID);
 
                 //if (NotInteractingAlready(otherNPC))
                 //{
@@ -533,6 +544,7 @@ public class npcScript : MonoBehaviour, InteractableInterface
             case "give":
                 state = State.GIVE;
                 GameObject.FindGameObjectWithTag("Player").GetComponent<mainPlayer>().AddMoney(-10);
+                GameObject.FindGameObjectWithTag("Player").transform.Find("giveParticles").GetComponent<ParticleSystem>().Play();
                 //state = State.RECIEVE;
                 break;
             case "steal":

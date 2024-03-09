@@ -789,6 +789,9 @@ public class simulation : MonoBehaviour
     
     public static npcScript GetNPCByID(string IDstring)
     {
+        //when this gets called on "" because some patterns don't have the character yet, it breaks the first line as no number can be given.
+        //just gonna remove 3 person patterns instead
+
         int ID = int.Parse(IDstring);
         GameObject[] npcs = GameObject.FindGameObjectsWithTag("NPC");
         //Debug.Log("NPCs found: " + npcs.Length);
@@ -814,15 +817,6 @@ public class simulation : MonoBehaviour
 
 
 
-    //either 2 characters, 1 character 1 object, 2 characters 1 object. Overloaded function so can do either
-    public static void AddToLog(string action, string ent1, string ent2, string ent3)
-    {
-        string gameLog = action + "." + ent1 + "." + ent2 + "." + ent3;
-        log.Add(gameLog);
-        Debug.Log("Added to game log: " + gameLog);
-        WriteToLog(gameLog);
-        //Debug.Log("Check: " + log[log.Count -1]);
-    }
     public static void AddToLog(string action, string ent1, string ent2)
     {
         string gameLog = action + "." + ent1 + "." + ent2;
@@ -852,26 +846,26 @@ public class simulation : MonoBehaviour
     {
         //vengence pattern
         List<Event> pat1 = new List<Event>();
-        pat1.Add(new Event("fight", "A", "B", null));
-        pat1.Add(new Event("escape", "B", "A", null));
-        pat1.Add(new Event("fight", "B", "A", null));
+        pat1.Add(new Event("fight", "A", "B"));
+        pat1.Add(new Event("escape", "B", "A"));
+        pat1.Add(new Event("fight", "B", "A"));
         Pattern pattern1 = new(PatternName.VENGENCE, pat1, false);
 
         //reclaim - kill and steal back pattern
         List<Event> pat2 = new List<Event>();
-        pat2.Add(new Event("steal_success", "A", "B", "AA"));
-        pat2.Add(new Event("fight", "B", "A", null));
-        pat2.Add(new Event("kill", "B", "A", null));
-        pat2.Add(new Event("loot", "B", "A", "AA"));
+        pat2.Add(new Event("steal_success", "A", "B"));
+        pat2.Add(new Event("fight", "B", "A"));
+        pat2.Add(new Event("kill", "B", "A"));
+        pat2.Add(new Event("loot", "B", "A"));
         Pattern pattern2 = new(PatternName.RECLAIM, pat2, false);
 
 
         //revenge - killing character that killed friend
-        List<Event> pat3 = new List<Event>();
-        pat3.Add(new Event("kill", "A", "B", null));
-        pat3.Add(new Event("fight", "C", "A", null));
-        pat3.Add(new Event("kill", "C", "A", null));
-        Pattern pattern3 = new(PatternName.REVENGE, pat3, true);
+        //List<Event> pat3 = new List<Event>();
+        //pat3.Add(new Event("kill", "A", "B"));
+        //pat3.Add(new Event("fight", "C", "A"));
+        //pat3.Add(new Event("kill", "C", "A"));
+        //Pattern pattern3 = new(PatternName.REVENGE, pat3, true);
         //conditions: character is aggressive. C and A friends
 
         // stealing back item from character that killed and looted from friend
@@ -884,22 +878,22 @@ public class simulation : MonoBehaviour
 
         //annoyance - character failed a steal and kept getting caught, annoys other character
         List<Event> pat5 = new List<Event>();
-        pat5.Add(new Event("steal_fail", "A", "B", null));
-        pat5.Add(new Event("steal_fail", "A", "B", null));
+        pat5.Add(new Event("steal_fail", "A", "B"));
+        pat5.Add(new Event("steal_fail", "A", "B"));
         //pat5.Add(new Event("steal_fail", "A", "B", null));  //maybe you should try stealing again later
-        pat5.Add(new Event("fight", "B", "A", null));  //he keeps stealing from you, he won't stop unless you stop him.
+        pat5.Add(new Event("fight", "B", "A"));  //he keeps stealing from you, he won't stop unless you stop him.
         Pattern pattern5 = new(PatternName.ANNOYANCE, pat5, false);
 
         //friends
         List<Event> pat6 = new List<Event>();
-        pat6.Add(new Event("talk", "A", "B", null));
-        pat6.Add(new Event("talk", "B", "A", null));
-        pat6.Add(new Event("give", "B", "A", null));
+        pat6.Add(new Event("talk", "A", "B"));
+        pat6.Add(new Event("talk", "B", "A"));
+        pat6.Add(new Event("give", "B", "A"));
         Pattern pattern6 = new(PatternName.FRIENDS, pat6, true);
 
         patterns.Add(pattern1);
         patterns.Add(pattern2);
-        patterns.Add(pattern3);
+        //patterns.Add(pattern3);
         //patterns.Add(pattern4);
         patterns.Add(pattern5);
         patterns.Add(pattern6);
@@ -942,14 +936,12 @@ public class Event
     public string action;
     public string char1;
     public string char2;
-    public string obj;
 
-    public Event(string action, string char1, string char2, string obj)
+    public Event(string action, string char1, string char2)
     {
         this.action = action;
         this.char1 = char1;
         this.char2 = char2;
-        this.obj = obj;
     }
 }
 
@@ -1025,31 +1017,31 @@ public class PartialBlock
             {
                 if (_event.char2.Equals("B"))
                 {
-                    patternFollowEventsList.Add(new Event(_event.action, charA, charB, null));
+                    patternFollowEventsList.Add(new Event(_event.action, charA, charB));
                 } else
                 {
-                    patternFollowEventsList.Add(new Event(_event.action, charA, "", null));
+                    patternFollowEventsList.Add(new Event(_event.action, charA, ""));
                 }
                
             } else if (_event.char1.Equals("B"))
             {
                 if (_event.char2.Equals("A"))
                 {
-                    patternFollowEventsList.Add(new Event(_event.action, charB, charA, null));
+                    patternFollowEventsList.Add(new Event(_event.action, charB, charA));
                 }
                 else
                 {
-                    patternFollowEventsList.Add(new Event(_event.action, charB, "", null));
+                    patternFollowEventsList.Add(new Event(_event.action, charB, ""));
                 }
             } else
             {
                 if (_event.char2.Equals("A"))
                 {
-                    patternFollowEventsList.Add(new Event(_event.action, "", charA, null));
+                    patternFollowEventsList.Add(new Event(_event.action, "", charA));
                 }
                 else
                 {
-                    patternFollowEventsList.Add(new Event(_event.action, "", charB, null));
+                    patternFollowEventsList.Add(new Event(_event.action, "", charB));
                 }
             }
             
@@ -1146,31 +1138,31 @@ public class PartialBlock
 
     public bool DeadNPC(string id)
     {
-        Debug.Log("pattern " + name);
+        //Debug.Log("pattern " + name);
         for (int i = currentEvent; i < patternFollowEventsList.Count; i++)
         {
-            Debug.Log(patternFollowEventsList[i].action + " " + patternFollowEventsList[i].char1 + " " + patternFollowEventsList[i].char2);
+            //Debug.Log(patternFollowEventsList[i].action + " " + patternFollowEventsList[i].char1 + " " + patternFollowEventsList[i].char2);
             if (patternFollowEventsList[i].char2 == id || patternFollowEventsList[i].char1 == id)
             {
                 if (patternFollowEventsList[i].char2 == id && patternFollowEventsList[i].action == "loot")
                 {
                     //they can be dead and looted
-                    Debug.Log("can be dead and looted");
+                    //Debug.Log("can be dead and looted");
                 } 
                 else if (patternFollowEventsList[i].char2 == id && patternFollowEventsList[i].action == "kill")
                 {
                    
-                    Debug.Log("kill check if still the current one");
+                    //Debug.Log("kill check if still the current one");
                 } 
                 else 
                 {
-                    Debug.Log("dead character involved");
+                    //Debug.Log("dead character involved");
                     return true;
 
                 }
             }
         }
-        Debug.Log("no dead character involved");
+        //Debug.Log("no dead character involved");
         return false;
     }
 
