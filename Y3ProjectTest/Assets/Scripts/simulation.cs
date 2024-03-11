@@ -27,6 +27,8 @@ public class simulation : MonoBehaviour
     public float influenceAppearTimer;
     private int nicePatternCount = 0;
     private int meanPatternCount = 0;
+    private List<PatternName> nicePatternsNames;
+    private List<PatternName> meanPatternsNames;
 
    
 
@@ -128,10 +130,9 @@ public class simulation : MonoBehaviour
         StorySift();
 
 
-        if (influenceOn)
-        {
 
             //if nothing has changed on influence after 3 seconds, it will dissapear
+            //this is the time for you to read it.
             if (influenceAppearTimer > 3f)
             {
                 influenceAppearTimer = 0f;
@@ -144,11 +145,18 @@ public class simulation : MonoBehaviour
             }
 
             //every 6 seconds call the influencer
-            if (influenceTimer > 6f)
+            if (influenceTimer > 10f)
             {
                 influenceTimer = 0f;
-                Influence2();
-                
+
+                if (influenceOn)
+                {
+                    Influence2();
+                } else
+                {
+                    NoInfluence();
+                }
+                                
             }
             else
             {
@@ -157,14 +165,17 @@ public class simulation : MonoBehaviour
 
 
 
-        } else
-        {
-
-        }
+      
 
         //maybe call influence function after x amount of time of no patterns being advanced, or when you are in proximity to the character in question
     }
 
+    void NoInfluence()
+    {
+            suggestionText.text = randomText[Random.Range(0, 10)];
+            influenceUI.SetActive(true);
+            influenceAppearTimer = 0f;       
+    }
 
     //both NPCs call this when they crash into each other. each one takes a turn being npc1 and npc2
     public static State[] NPCInteraction(npcScript npc1, npcScript npc2) 
@@ -290,53 +301,60 @@ public class simulation : MonoBehaviour
                         //completedPatterns.Add(PartialPatternPool[i].WriteBlock());
                         WriteCompletedPattern(PartialPatternPool[i].WriteBlock());
                     }
+                    //if pattern advanced for player then can reset influence timer
+                    if (currentLogBreakdown[1] == "0" || currentLogBreakdown[2] == "0")
+                    {
+                        influenceTimer = 0f;
+                    }
 
                 }
                 //now have a check for if can intro the new charC too -- if one of the char in pattern is "" then we can add the new charC
-                else if ((eventLooking.action == currentLogBreakdown[0]) )
                 {
-                    if ((eventLooking.char1 == currentLogBreakdown[1]) && (eventLooking.char2 == ""))
-                    {
-                        npcScript tempCharC = GetNPCByID(currentLogBreakdown[2]);
-                        if (tempCharC == null)
-                        {
-                            Debug.Log("Character doesn't exist anymore cannot add to pool");
-                        }
-                        else
-                        {
-                            PartialPatternPool[i].SetCharC(tempCharC.IDController.ToString());
-                            addedToPartialPattern = true;
-                            PartialPatternPool[i].incrementEvent();
-                            if (PartialPatternPool[i].patternComplete())
-                            {
-                                completedPattern = true;
-                                completedPatterns.Add(PartialPatternPool[i]);
-                                WriteCompletedPattern(PartialPatternPool[i].WriteBlock());
-                            }
-                        }
+                    //else if ((eventLooking.action == currentLogBreakdown[0]) )
+                    //{
+                    //    if ((eventLooking.char1 == currentLogBreakdown[1]) && (eventLooking.char2 == ""))
+                    //    {
+                    //        npcScript tempCharC = GetNPCByID(currentLogBreakdown[2]);
+                    //        if (tempCharC == null)
+                    //        {
+                    //            Debug.Log("Character doesn't exist anymore cannot add to pool");
+                    //        }
+                    //        else
+                    //        {
+                    //            PartialPatternPool[i].SetCharC(tempCharC.IDController.ToString());
+                    //            addedToPartialPattern = true;
+                    //            PartialPatternPool[i].incrementEvent();
+                    //            if (PartialPatternPool[i].patternComplete())
+                    //            {
+                    //                completedPattern = true;
+                    //                completedPatterns.Add(PartialPatternPool[i]);
+                    //                WriteCompletedPattern(PartialPatternPool[i].WriteBlock());
+                    //            }
+                    //        }
 
-                    }
-                    if ((eventLooking.char1 == "") && (eventLooking.char2 == currentLogBreakdown[2]))
-                    {
-                        npcScript tempCharC = GetNPCByID(currentLogBreakdown[1]);
-                        if (tempCharC == null)
-                        {
-                            Debug.Log("Character doesn't exist anymore cannot add to pool");
-                        }
-                        else
-                        {
-                            PartialPatternPool[i].SetCharC(tempCharC.IDController.ToString());
-                            addedToPartialPattern = true;
-                            PartialPatternPool[i].incrementEvent();
-                            if (PartialPatternPool[i].patternComplete())
-                            {
-                                completedPattern = true;
-                                completedPatterns.Add(PartialPatternPool[i]);
-                                WriteCompletedPattern(PartialPatternPool[i].WriteBlock());
-                            }
-                        }
-                    }
+                    //    }
+                    //    if ((eventLooking.char1 == "") && (eventLooking.char2 == currentLogBreakdown[2]))
+                    //    {
+                    //        npcScript tempCharC = GetNPCByID(currentLogBreakdown[1]);
+                    //        if (tempCharC == null)
+                    //        {
+                    //            Debug.Log("Character doesn't exist anymore cannot add to pool");
+                    //        }
+                    //        else
+                    //        {
+                    //            PartialPatternPool[i].SetCharC(tempCharC.IDController.ToString());
+                    //            addedToPartialPattern = true;
+                    //            PartialPatternPool[i].incrementEvent();
+                    //            if (PartialPatternPool[i].patternComplete())
+                    //            {
+                    //                completedPattern = true;
+                    //                completedPatterns.Add(PartialPatternPool[i]);
+                    //                WriteCompletedPattern(PartialPatternPool[i].WriteBlock());
+                    //            }
+                    //        }
+                    //    }
 
+                    //}
                 }
 
             }
@@ -434,7 +452,7 @@ public class simulation : MonoBehaviour
             {
                 if (block.patternComplete())
                 {
-                    if (block.name == PatternName.FRIENDS)
+                    if (nicePatternsNames.Contains(block.name))
                     {
                         nicePatternCount++;
                     } else
@@ -468,10 +486,7 @@ public class simulation : MonoBehaviour
             }
             
 
-            //INFLUENCER
-            //what events will be needed to advance any partial patterns? give suggestions
-
-
+          
 
             //REWRITE PARTIAL POOL
             ClearPartialPoolText();
@@ -569,28 +584,77 @@ public class simulation : MonoBehaviour
     //chooses from a list of potential patterns that work based on the players behaviour before
     PartialBlock ChooseFavouredPattern(List<PartialBlock> pool)
     {
+        //there will be at least 1 pattern in the pool for this to be called
+
+        //want to model players behaviour and choose patterns they like
+        //want a bit of variety
+        //if they keep suggesting one, don't want to continue keeping suggesting it if they don't do it. max times is 3
+
+
         //go through completed pool and decide which pattern player favours
         int n = pool.Count;
+        List<PartialBlock> chooseList = new List<PartialBlock>();
+        List<PartialBlock> chooseList2 = new List<PartialBlock>();
+
+        //make a probability for nice patterns to mean patterns.
+        //float niceFraction = nicePatternCount / (nicePatternCount + meanPatternCount);
+        //float meanFraction = meanPatternCount / (nicePatternCount + meanPatternCount);
+        bool nice;
+        int total = nicePatternCount + meanPatternCount;
+        if (Random.Range(1,total+1) <= nicePatternCount)
+        {
+            //do nice
+            nice = true;
+        } else
+        {
+            //do mean
+            nice = false;
+        }
+
+        
+
+
         for (int i = 0; i < n; i++)
         {
-            if (nicePatternCount > meanPatternCount)
+            if (nice)
             {
-                if (pool[i].name == PatternName.FRIENDS)
+                if (nicePatternsNames.Contains(pool[i].name))
                 {
-                    return pool[i];
+                    chooseList.Add(pool[i]);
+                    //return pool[i];
                 }
             }
             else
             {
-                if (pool[i].name != PatternName.FRIENDS)
+                if (meanPatternsNames.Contains(pool[i].name))
                 {
-                    return pool[i];
+                    chooseList.Add(pool[i]);
+                    //return pool[i];
                 }
             }
         }
 
+        foreach (PartialBlock block in chooseList)
+        {
+            if (block.noTimesSuggested < 3)
+            {
+                chooseList2.Add(block);
+            }
+        }
+
+        if (chooseList2.Count != 0)
+        {
+            return chooseList2[Random.Range(0, chooseList2.Count)];
+        } else if (chooseList.Count != 0)
+        {
+            return chooseList[Random.Range(0, chooseList.Count)];
+        } else
+        {
+            return pool[Random.Range(0,n)];
+        }
+
        
-       return pool[0];
+       
         
     }
     string GetSuggestedText(PartialBlock pattern)
@@ -651,7 +715,7 @@ public class simulation : MonoBehaviour
             influencePattern = ChooseFavouredPattern(player0Blocks);
 
             //could tell them to move towns, maybe to the town of the chosen block??
-            suggestedText = "This town is kind of boring";
+            suggestedText = "This town is kind of boring, we should move.";
 
         } else
         {
@@ -660,8 +724,8 @@ public class simulation : MonoBehaviour
             suggestedText = GetSuggestedText(influencePattern);
         }
 
-        //add some randomness to the text when there are patterns. 25% chance of it being random text anyway.
-        if (Random.Range(0, 4) == 0)
+        //add some randomness to the text when there are patterns. 20% chance of it being random text anyway.
+        if (Random.Range(0, 5) == 0)
         {
             suggestedText = randomText[Random.Range(0, 10)];
         }
@@ -898,7 +962,12 @@ public class simulation : MonoBehaviour
         patterns.Add(pattern5);
         patterns.Add(pattern6);
 
-
+        nicePatternsNames = new List<PatternName>();
+        meanPatternsNames = new List<PatternName>();
+        nicePatternsNames.Add(PatternName.FRIENDS);
+        meanPatternsNames.Add(PatternName.VENGENCE);
+        meanPatternsNames.Add(PatternName.ANNOYANCE);
+        meanPatternsNames.Add(PatternName.RECLAIM);
     }
 
     private void SetUpNames()
@@ -996,6 +1065,7 @@ public class PartialBlock
     public string firstAction;
     public bool complete;
     public PatternName name;
+    public int noTimesSuggested;
 
     public PartialBlock(Pattern pattern, string _charA, string _charB, int _ID)
     {
@@ -1009,6 +1079,7 @@ public class PartialBlock
         ID = _ID;
         firstAction = patternTemplate.getEvent(0).action;
         name = pattern.name;
+        noTimesSuggested = 0;
  
         //sets up event list with correct characters in the pattern (as strings of their ID
         foreach(Event _event in patternTemplate.GetEvents())

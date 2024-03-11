@@ -1,22 +1,11 @@
 COMPLETED PATTERNS
 VENGENCE
- fight 0 4
- escape 4 0
- fight 4 0
+ fight 0 3
+ escape 3 0
+ fight 3 0
 
-VENGENCE
- fight 0 4
- escape 4 0
- fight 4 0
-
-ANNOYANCE
- steal_fail 4 0
- steal_fail 4 0
- fight 0 4
-
-RECLAIM
- steal_success 4 0
- fight 0 4
- kill 0 4
- loot 0 4
+FRIENDS
+ talk 0 3
+ talk 3 0
+ give 3 0
 
